@@ -7,6 +7,7 @@ export interface StatusBannerProps {
   gameType: GameType | null;
   soloist: PlayerId | null;
   isHumanTurn: boolean;
+  dealer?: PlayerId;
 }
 
 const PHASE_WORD: Record<Phase, string> = {
@@ -28,6 +29,7 @@ export function StatusBanner({
   gameType,
   soloist,
   isHumanTurn,
+  dealer,
 }: StatusBannerProps) {
   let text = PHASE_WORD[phase];
   if (phase !== 'roundEnd') {
@@ -37,7 +39,10 @@ export function StatusBanner({
     text += ' · ' + GAME_TYPE_WORD[gameType];
   }
   if (soloist !== null) {
-    text += ' · Soloist: ' + seatName(soloist);
+    text += ' · Big: ' + seatName(soloist);
+  }
+  if (dealer !== undefined) {
+    text += ' · Dealer: ' + seatName(dealer);
   }
 
   return <div className="status-banner">{text}</div>;

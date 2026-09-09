@@ -2,13 +2,13 @@
  * Top-level game layout (design D4). Pure presentation: it derives everything from the view-model's
  * `PlayerView` + callbacks and shows only the control for the active phase.
  */
-import type { BidAction, Card } from '../../engine/index.ts';
+import type { BidAction, Card, PlayerId } from '../../engine/index.ts';
 import { HUMAN, seatName } from '../game/driver.ts';
 import { sortHand } from '../game/cardText.ts';
 import type { ZoleGameVM } from '../game/useZoleGame.ts';
 import { StatusBanner } from './StatusBanner.tsx';
 import { Scoreboard, type ScoreEntry } from './Scoreboard.tsx';
-import { OpponentPanel } from './OpponentPanel.tsx';
+import { OpponentPanel, type Role } from './OpponentPanel.tsx';
 import { TrickArea } from './TrickArea.tsx';
 import { Hand } from './Hand.tsx';
 import { BiddingControls } from './BiddingControls.tsx';
@@ -34,6 +34,14 @@ export function Table({ vm }: TableProps) {
   const pending = vm.pendingTrick;
   const sortedHand = sortHand(view.hand);
 
+  // Big (soloist) vs Small (pair) is meaningful once a soloist is decided (ordinary/Zole, not
+  // galdiņš). Surface it prominently on every seat.
+  const rolesVisible =
+    (phase === 'discarding' || phase === 'playing' || phase === 'roundEnd') && view.soloist !== null;
+  const roleOf = (seat: PlayerId): Role =>
+    rolesVisible ? (seat === view.soloist ? 'big' : 'small') : null;
+  const myRole = roleOf(HUMAN);
+
   const scoreEntries: ScoreEntry[] = [
     { seat: view.me, name: seatName(view.me), gamePoints: view.gamePoints, isMe: true },
     ...view.opponents.map((o) => ({
@@ -54,6 +62,7 @@ export function Table({ vm }: TableProps) {
           gameType={view.gameType}
           soloist={view.soloist}
           isHumanTurn={isHumanTurn}
+          dealer={view.dealer}
         />
       </header>
 
@@ -67,6 +76,8 @@ export function Table({ vm }: TableProps) {
             isCurrent={phase !== 'roundEnd' && view.current === o.id}
             isSoloist={view.soloist === o.id}
             phase={view.phase}
+            role={roleOf(o.id)}
+            isDealer={view.dealer === o.id}
           />
         ))}
       </section>
@@ -87,7 +98,19 @@ export function Table({ vm }: TableProps) {
       ) : null}
 
       <section className="human-area">
-        <div className="human-label">Your hand</div>
+        <div className="human-label">
+          Your hand
+          {view.dealer === HUMAN && (
+            <span className="dealer-chip" title="Dealer">
+              D
+            </span>
+          )}
+          {myRole && (
+            <span className={`role-badge role-badge--${myRole}`}>
+              {myRole === 'big' ? 'BIG' : 'SMALL'}
+            </span>
+          )}
+        </div>
         {showDiscard ? (
           <DiscardTray
             cards={sortedHand}

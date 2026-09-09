@@ -629,3 +629,37 @@ body {
 .delta--zero {
   color: var(--ink-dim);
 }
+
+/* Large at-a-glance per-round game-point change shown in each seat at round end. */
+.round-delta {
+  margin-top: 0.4rem;
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  animation: round-delta-pop 0.35s ease-out;
+}
+
+.round-delta--pos {
+  color: var(--pos);
+}
+
+.round-delta--neg {
+  color: var(--neg);
+}
+
+.round-delta--zero {
+  color: var(--ink-dim);
+}
+
+@keyframes round-delta-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

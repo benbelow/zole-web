@@ -41,6 +41,46 @@ describe('OpponentPanel', () => {
   });
 });
 
+describe('OpponentPanel round delta', () => {
+  it('shows a large per-round delta when roundDelta is provided', () => {
+    const { container } = render(
+      <OpponentPanel
+        opponent={base}
+        isCurrent={false}
+        isSoloist={false}
+        phase="roundEnd"
+        roundDelta={4}
+      />,
+    );
+    const delta = container.querySelector('.round-delta');
+    expect(delta).not.toBeNull();
+    expect(delta).toHaveClass('round-delta--pos');
+    expect(delta).toHaveTextContent('+4');
+  });
+
+  it('renders negative deltas with a sign and neg styling', () => {
+    const { container } = render(
+      <OpponentPanel
+        opponent={base}
+        isCurrent={false}
+        isSoloist={false}
+        phase="roundEnd"
+        roundDelta={-6}
+      />,
+    );
+    const delta = container.querySelector('.round-delta');
+    expect(delta).toHaveClass('round-delta--neg');
+    expect(delta).toHaveTextContent('-6');
+  });
+
+  it('hides the round delta by default (null)', () => {
+    const { container } = render(
+      <OpponentPanel opponent={base} isCurrent={false} isSoloist={false} phase="playing" />,
+    );
+    expect(container.querySelector('.round-delta')).toBeNull();
+  });
+});
+
 describe('OpponentPanel AI picker', () => {
   it('renders a strategy picker and fires onStrategyChange', () => {
     const onStrategyChange = vi.fn();

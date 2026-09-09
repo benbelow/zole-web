@@ -16,6 +16,7 @@ import { Hand } from './Hand.tsx';
 import { BiddingControls } from './BiddingControls.tsx';
 import { DiscardTray } from './DiscardTray.tsx';
 import { RoundSummary } from './RoundSummary.tsx';
+import { RoundDelta } from './RoundDelta.tsx';
 import { GameControls } from './GameControls.tsx';
 
 export interface TableProps {
@@ -45,6 +46,14 @@ export function Table({ vm, theme, onThemeChange }: TableProps) {
   const roleOf = (seat: PlayerId): Role =>
     rolesVisible ? (seat === view.soloist ? 'big' : 'small') : null;
   const myRole = roleOf(HUMAN);
+
+  // At round end, surface each seat's per-round game-point change large in its own space. The full
+  // breakdown still lives in RoundSummary; this is the at-a-glance number. Hidden mid-trick so the
+  // reveal lands with the round-over summary.
+  const roundOver = phase === 'roundEnd' && !pending && view.result !== null;
+  const deltaFor = (seat: PlayerId): number | null =>
+    roundOver && view.result ? view.result.deltas[seat] : null;
+  const humanDelta = deltaFor(HUMAN);
 
   const scoreEntries: ScoreEntry[] = [
     { seat: view.me, name: seatName(view.me), gamePoints: view.gamePoints, isMe: true },
@@ -85,6 +94,7 @@ export function Table({ vm, theme, onThemeChange }: TableProps) {
             isDealer={view.dealer === o.id}
             strategyId={vm.aiStrategies[o.id]}
             onStrategyChange={(id) => vm.setAiStrategy(o.id, id)}
+            roundDelta={deltaFor(o.id)}
           />
         ))}
       </section>
@@ -118,6 +128,7 @@ export function Table({ vm, theme, onThemeChange }: TableProps) {
             </span>
           )}
         </div>
+        {humanDelta !== null && <RoundDelta delta={humanDelta} />}
         {showDiscard ? (
           <DiscardTray
             cards={sortedHand}

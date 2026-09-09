@@ -62,6 +62,60 @@ describe('Table redaction', () => {
   });
 });
 
+describe('Table round-end deltas', () => {
+  const roundEndView: PlayerView = {
+    me: 0,
+    phase: 'roundEnd',
+    hand: [],
+    gamePoints: 4,
+    zoleTreeBranches: 0,
+    dealer: 2,
+    current: 0,
+    gameType: 'ordinary',
+    soloist: 0,
+    trick: [],
+    trickLeader: null,
+    passed: [],
+    opponents,
+    legalMoves: [],
+    result: {
+      gameType: 'ordinary',
+      soloist: 0,
+      bigScore: 61,
+      // Asymmetric on purpose: guards against a per-seat indexing regression.
+      deltas: [5, -2, -3],
+      treeBranchesBefore: 0,
+      treeBranchesAfter: 0,
+      summary: 'Soloist wins.',
+    },
+  };
+
+  it('shows one large per-round delta per seat at round end (human + two opponents)', () => {
+    const { container } = render(<Table vm={makeVM(roundEndView)} />);
+    const deltas = container.querySelectorAll('.round-delta');
+    expect(deltas).toHaveLength(3);
+    // Human seat's delta (deltas[0]) lives inside the human area.
+    const humanDelta = container.querySelector('.human-area .round-delta');
+    expect(humanDelta).toHaveTextContent('+5');
+    // Both opponent panels carry their own per-seat delta (deltas[1], deltas[2]).
+    const oppDeltas = Array.from(
+      container.querySelectorAll('.opponent-panel .round-delta'),
+    ).map((el) => el.textContent);
+    expect(oppDeltas).toEqual(['-2', '-3']);
+  });
+
+  it('hides the per-round deltas while a resolved trick is still pending', () => {
+    const { container } = render(
+      <Table
+        vm={makeVM(roundEndView, {
+          pendingTrick: { cards: [], winner: 0 },
+        })}
+      />,
+    );
+    expect(container.querySelectorAll('.round-delta')).toHaveLength(0);
+  });
+});
+
 describe('Table phase controls', () => {
   it('shows the discard tray when the human soloist must put down', () => {
     const view: PlayerView = {

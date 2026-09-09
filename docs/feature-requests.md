@@ -25,9 +25,17 @@ Nothing here is pushed anywhere (the repo is local-only).
      - [ ] Add a "concede round" button for the human
      - [ ] Show a running count of trumps already played
 -->
+- [ ] Bug - content moves vertically as top status bar changes width with current status
+- [ ] Cards UI should be bigger still
+- [ ] When picking up, the two new cards should animate joining the hand rather than animating the full new hand from sractch - the exitsing hand cards should always be visible
+- [ ] Remove vibrant theme
+- [ ] make galdins more visually obvious
+- [ ] lift animation on card from hand on hover ready to play. Should be suitably timed and time the unlift so there's never a harsh jump
+- [ ] persist meta scores across refresh with local storage, newgame should reset the scores though
 
 ## Processed
 
 <!-- The agent appends completed items here, e.g.:
 - [x] Add a concede button — `zole-web-abc` — implemented (commit 1a2b3c4)
 -->
+- [x] Show large per-round score after last trick in each player's space — `zole-web-1hw` — implemented: large per-round game-point delta now shown in each seat (human + both opponents) at round end via new RoundDelta component (commit 0a37e7d)

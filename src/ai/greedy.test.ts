@@ -272,3 +272,42 @@ describe('greedyPlayer — legality property', () => {
     expect(cardPoints(c('A', 'hearts'))).toBe(11);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Tie-breaks (pin down under-specified but intentional behaviour)
+// ---------------------------------------------------------------------------
+
+describe('greedyPlayer — tie-breaks', () => {
+  it('leads its weakest card', () => {
+    // Empty trick: every card "wins", so it leads the weakest by strength (the non-trump 9).
+    const hand: Card[] = [c('Q', 'clubs'), c('A', 'clubs'), c('9', 'spades')];
+    const view = makeView({ hand, phase: 'playing', trick: [], legalMoves: playMovesFor(hand, []) });
+    const move = greedyPlayer(view, createRng(0));
+    expect(move).toEqual({ type: 'play', card: c('9', 'spades') });
+  });
+
+  it('prefers voiding a single-card suit when discard candidates tie on points', () => {
+    // Non-trumps: A♥ (11, always banked first), then a 4-point tie between K♣ (clubs has 2 cards)
+    // and K♠ (spades single). The tie-break should discard K♠ to void the suit, not K♣.
+    const hand: Card[] = [
+      c('A', 'hearts'),
+      c('K', 'clubs'),
+      c('9', 'clubs'),
+      c('K', 'spades'),
+      c('Q', 'clubs'),
+      c('Q', 'spades'),
+      c('J', 'diamonds'),
+      c('A', 'diamonds'),
+      c('K', 'diamonds'),
+      c('9', 'diamonds'),
+    ];
+    const view = makeView({ hand, phase: 'discarding', legalMoves: discardMovesFor(hand) });
+    const move = greedyPlayer(view, createRng(0));
+    expect(move.type).toBe('discard');
+    if (move.type !== 'discard') throw new Error('unreachable');
+    const has = (card: Card) => move.cards.some((x) => sameCard(x, card));
+    expect(has(c('A', 'hearts'))).toBe(true);
+    expect(has(c('K', 'spades'))).toBe(true);
+    expect(has(c('K', 'clubs'))).toBe(false);
+  });
+});

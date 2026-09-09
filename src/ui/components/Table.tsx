@@ -6,6 +6,8 @@ import type { BidAction, Card, PlayerId } from '../../engine/index.ts';
 import { HUMAN, seatName } from '../game/driver.ts';
 import { sortHand } from '../game/cardText.ts';
 import type { ZoleGameVM } from '../game/useZoleGame.ts';
+import type { ThemeId } from '../theme/useTheme.ts';
+import { ThemeSwitcher } from './ThemeSwitcher.tsx';
 import { StatusBanner } from './StatusBanner.tsx';
 import { Scoreboard, type ScoreEntry } from './Scoreboard.tsx';
 import { OpponentPanel, type Role } from './OpponentPanel.tsx';
@@ -18,9 +20,11 @@ import { GameControls } from './GameControls.tsx';
 
 export interface TableProps {
   vm: ZoleGameVM;
+  theme?: ThemeId;
+  onThemeChange?: (theme: ThemeId) => void;
 }
 
-export function Table({ vm }: TableProps) {
+export function Table({ vm, theme, onThemeChange }: TableProps) {
   const { view, phase, isHumanTurn } = vm;
 
   const legalPlayCards: Card[] = view.legalMoves.flatMap((m) => (m.type === 'play' ? [m.card] : []));
@@ -56,6 +60,7 @@ export function Table({ vm }: TableProps) {
     <div className="zole-table">
       <header className="zole-header">
         <h1>Zole</h1>
+        {theme && onThemeChange ? <ThemeSwitcher theme={theme} onChange={onThemeChange} /> : null}
         <StatusBanner
           phase={view.phase}
           current={view.current}

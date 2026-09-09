@@ -30,11 +30,8 @@ Nothing here is pushed anywhere (the repo is local-only).
      - [ ] Add a "concede round" button for the human
      - [ ] Show a running count of trumps already played
 -->
-- [ ] Follow-up to `zole-web-1hw`: at round end, also show the actual card points each player won that round (not just the game-point delta) — e.g. the soloist's bigScore and each side's captured points
-- [ ] Bug - content moves vertically as top status bar changes width with current status
 - [ ] When picking up, the two new cards should animate joining the hand rather than animating the full new hand from sractch - the exitsing hand cards should always be visible
 - [ ] make galdins more visually obvious
-- [ ] lift animation on card from hand on hover ready to play. Should be suitably timed and time the unlift so there's never a harsh jump
 
 ## In Progress
 
@@ -42,6 +39,9 @@ Nothing here is pushed anywhere (the repo is local-only).
      (indented so tools ignore this example):
      - [~] <request> — `<bd-id>` — started <UTC-ISO-8601> — run <run-id>
      Any item here older than 60 min is treated as a stale/crashed run and reclaimed to ## Inbox. -->
+- [~] Follow-up to `zole-web-1hw`: at round end, also show the actual card points each player won that round (not just the game-point delta) — e.g. the soloist's bigScore and each side's captured points — `zole-web-g6t` — started 2026-09-09T23:11:06Z — run 20260909T231106Z-989b8e0
+- [~] Bug - content moves vertically as top status bar changes width with current status — `zole-web-1nz` — started 2026-09-09T23:11:06Z — run 20260909T231106Z-989b8e0
+- [~] lift animation on card from hand on hover ready to play. Should be suitably timed and time the unlift so there's never a harsh jump — `zole-web-2yn` — started 2026-09-09T23:11:06Z — run 20260909T231106Z-989b8e0
 
 ## Processed
 

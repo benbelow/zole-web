@@ -38,9 +38,10 @@ Nothing here is pushed anywhere (the repo is local-only).
 
 ## In Progress
 
-<!-- The agent moves items here while working on them, then on to Processed when done. Format:
-- [~] <request> — `<bd-id>` — started <UTC-ISO-8601> — run <run-id>
-Any item here older than 60 min is treated as a stale/crashed run and reclaimed to ## Inbox. -->
+<!-- The agent moves items here while working on them, then on to Processed when done. Format
+     (indented so tools ignore this example):
+     - [~] <request> — `<bd-id>` — started <UTC-ISO-8601> — run <run-id>
+     Any item here older than 60 min is treated as a stale/crashed run and reclaimed to ## Inbox. -->
 
 ## Processed
 

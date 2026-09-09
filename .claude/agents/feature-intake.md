@@ -25,41 +25,58 @@ autonomously but conservatively, and you follow every rule in `CLAUDE.md`.
    (`- [ ] …`, plus any indented detail lines) under `## Inbox`, oldest first. Ignore commented-out
    examples (`<!-- … -->`). If there are none, report "inbox empty" and stop — make no changes.
 
-2. **Take the oldest item** (process ONE item per run; the loop will call you again for the next).
-
-3. **Log it to beads.** `bd create --title="…" --description="why + what" --type=feature|task|bug
-   --priority=2`. Capture the new id. If the request is ambiguous, risky, or a product decision you
-   shouldn't make alone, create the issue, run `bd human <id>` to flag it, mark the inbox item as
-   "→ needs decision" in Processed, and stop.
-
-4. **Assess scope.**
+2. **Triage + scope every candidate.** For each item, decide:
    - **Large / architectural** (new capability, cross-layer change, new engine rules, anything
-     touching `docs/zole-rules.md`, or ambiguous design): DO NOT implement blind. Draft an OpenSpec
-     change proposal — dispatch the `architect` agent (Agent tool, `subagent_type: architect`) or
-     run the `openspec-propose` skill — link it to the beads id, and leave it for human approval.
-     Mark the inbox item Processed as "→ proposed (change-name), awaiting approval — bd-id".
-   - **Well-scoped / small** (self-contained UI tweak, additive helper, clear bug fix): implement it
-     now (steps 5–7).
+     touching `docs/zole-rules.md`, or ambiguous design) → **propose**, don't implement blind.
+   - **Well-scoped / small** (self-contained UI tweak, additive helper, clear bug fix) → **implement**.
+   For each implementable item, work out the concrete **set of files it will touch** (inspect the
+   request against the codebase).
 
-5. **Implement.** Claim the issue (`bd update <id> --claim`). Make the change respecting the
-   layering and conventions. Add or update colocated tests. Run the gates and fix until green:
-   `npm run lint && npm run test && npx tsc -b && npm run build`.
+3. **Form a parallel batch (where appropriate).** Select a batch of implementable items whose file
+   sets are **mutually disjoint** — and such that no shared/hot file (e.g. `src/app/index.css`,
+   `src/app/cards.css`, `src/ui/components/Table.tsx`, `src/ui/game/useZoleGame.ts`,
+   `src/ai/index.ts`) is written by more than one item in the batch. Cap the batch at ~4 to stay
+   reviewable, oldest-first. Any item that would overlap another selected item is **left for a later
+   run** — do NOT parallelize overlapping work. If nothing is safely parallelizable, just take the
+   oldest single item.
 
-6. **Review gate.** Dispatch the `code-reviewer` agent (Agent tool, `subagent_type: code-reviewer`)
-   on the diff. Fix any blocking findings, re-run the gates, then run
+4. **Log to beads.** For every item in this run: `bd create --title="…" --description="why + what"
+   --type=feature|task|bug --priority=2`; `bd update <id> --claim`. Capture the ids. If an item is
+   ambiguous/risky/a product decision, `bd human <id>`, mark it "→ needs decision" in Processed, and
+   drop it from the batch.
+
+5. **Implement — in parallel where safe.**
+   - **Batch > 1:** dispatch one implementation subagent per item **in a single message** (concurrent
+     Agent calls). Give each subagent: its request, its beads id, the **exact list of files it may
+     touch**, and a hard rule to touch NOTHING else (especially no hot file another agent owns) and
+     to add colocated tests + self-verify `npx tsc -b`/lint on its files. Because the batch is
+     file-disjoint, the concurrent edits cannot collide. (If two items truly must edit the same file,
+     they are not in the same batch — handle one now, defer the other. Only reach for
+     `isolation: 'worktree'` if you deliberately parallelize items that share files.)
+   - **Single item:** implement it directly against the layering/conventions with colocated tests.
+
+6. **Proposals (parallel-safe).** For each large/architectural item, draft an OpenSpec change —
+   dispatch the `architect` agent (`subagent_type: architect`) or run `openspec-propose` — linked to
+   its beads id, and leave it for human approval. These are read-mostly and may run alongside step 5.
+
+7. **Integrate + gate once.** After the batch returns, run `npm run lint && npm run test &&
+   npx tsc -b && npm run build`; fix any integration issues. Dispatch the `code-reviewer`
+   (`subagent_type: code-reviewer`) on the combined diff; address blocking findings; re-run gates;
    `bash .claude/hooks/mark-reviewed.sh`.
 
-7. **Record + commit.** Close/annotate the beads issue (`bd close <id>` for done work). Edit
-   `docs/feature-requests.md`: remove the item from `## Inbox` and append it under `## Processed`
-   as `- [x] <request> — \`<bd-id>\` — <one-line outcome> (commit <sha>)`. Commit everything
-   atomically (Conventional Commit + trailers). **Never push.**
+8. **Record + commit — one atomic commit per item.** For each processed item: `git add` just that
+   item's files and commit (Conventional Commit + repo trailers); `bd close <id>`; move the item
+   from `## Inbox` to `## Processed` as
+   `- [x] <request> — \`<bd-id>\` — <one-line outcome> (commit <sha>)`. Proposals get
+   `→ proposed (change-name), awaiting approval — <bd-id>`. **Never push.**
 
-8. **Report** a concise summary: the request, beads id, whether implemented or proposed, the
-   commit sha, and how many items remain in the inbox.
+9. **Report** a concise summary per item (id, implemented/proposed, commit) and the remaining count.
 
 ## Safety
 
 - Stay within this repository. Do not run `git push`, history rewrites, or `rm -rf`.
+- **Never let two concurrent subagents write the same file.** When file scopes are uncertain or
+  might overlap, serialize instead of parallelizing — correctness beats throughput.
+- Keep commits atomic (one per item) so history stays reviewable even when work ran in parallel.
 - If a request conflicts with the rules, the layering, or an existing spec, prefer proposing over
   forcing it, and flag for human decision.
-- Keep each run to a single item so history stays reviewable.

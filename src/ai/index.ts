@@ -8,3 +8,5 @@
  */
 export type { Strategy } from './strategy.ts';
 export { greedyPlayer } from './greedy.ts';
+export { smartPlayer } from './smart.ts';
+export { randomPlayer } from './random.ts';

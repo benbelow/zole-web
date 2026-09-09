@@ -11,8 +11,10 @@ import {
   legalPlays,
   sameCard,
   viewFor,
+  wouldWin,
   type Card,
   type GameState,
+  type GameType,
   type Move,
   type Phase,
   type PlayerView,
@@ -29,6 +31,7 @@ interface ViewOverrides {
   phase: Phase;
   trick?: readonly TrickCard[];
   legalMoves: readonly Move[];
+  gameType?: GameType | null;
 }
 
 function makeView(o: ViewOverrides): PlayerView {
@@ -40,7 +43,7 @@ function makeView(o: ViewOverrides): PlayerView {
     zoleTreeBranches: 0,
     dealer: 2,
     current: 0,
-    gameType: null,
+    gameType: o.gameType ?? null,
     soloist: null,
     trick: o.trick ?? [],
     trickLeader: null,
@@ -234,6 +237,71 @@ describe('greedyPlayer — playing', () => {
     const legal = playMovesFor(hand, trick);
     const view = makeView({ hand, phase: 'playing', trick, legalMoves: legal });
     expect(greedyPlayer(view, createRng(5))).toEqual(greedyPlayer(view, createRng(5)));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Galdiņš playing (no soloist: minimise trick-taking)
+// ---------------------------------------------------------------------------
+
+describe('greedyPlayer — galdiņš play', () => {
+  it('leads its weakest card', () => {
+    // Empty trick in galdiņš: play the weakest card by compareCards (least likely to win).
+    const hand: Card[] = [c('Q', 'clubs'), c('A', 'clubs'), c('9', 'spades')];
+    const legal = playMovesFor(hand, []);
+    const view = makeView({
+      hand,
+      phase: 'playing',
+      trick: [],
+      legalMoves: legal,
+      gameType: 'galdins',
+    });
+    const move = greedyPlayer(view, createRng(1));
+    expect(move).toEqual({ type: 'play', card: c('9', 'spades') });
+  });
+
+  it('following: ducks the trick with the highest non-winning card', () => {
+    // Led with 10♣ (non-trump). We are void in clubs, so all cards are legal:
+    //   Q♦ (trump) would WIN, A♥ and K♠ (off-suit non-trumps) would NOT.
+    // Among the non-winning cards it should shed the strongest: A♥.
+    const trick: TrickCard[] = [{ by: 1, card: c('10', 'clubs') }];
+    const hand: Card[] = [c('Q', 'diamonds'), c('A', 'hearts'), c('K', 'spades')];
+    const legal = playMovesFor(hand, trick);
+    expect(legal).toHaveLength(3); // void in clubs → all legal
+    const view = makeView({
+      hand,
+      phase: 'playing',
+      trick,
+      legalMoves: legal,
+      gameType: 'galdins',
+    });
+    const move = greedyPlayer(view, createRng(1));
+    expect(move.type).toBe('play');
+    if (move.type !== 'play') throw new Error('unreachable');
+    expect(wouldWin(move.card, trick)).toBe(false); // ducked the trick
+    expect(move).toEqual({ type: 'play', card: c('A', 'hearts') });
+  });
+
+  it('following: takes the trick as cheaply as possible when forced to win', () => {
+    // Led with a weak non-trump (7♠). We are void in spades and hold only trumps, so every
+    // legal card WINS. Forced to take it → play the weakest (lowest) trump: 7♦.
+    const trick: TrickCard[] = [{ by: 1, card: c('7', 'spades') }];
+    const hand: Card[] = [c('Q', 'clubs'), c('7', 'diamonds'), c('9', 'diamonds')];
+    const legal = playMovesFor(hand, trick);
+    expect(legal).toHaveLength(3); // void in spades → all legal (all trumps here)
+    // Sanity: every legal card would win this trick.
+    for (const m of legal) {
+      if (m.type === 'play') expect(wouldWin(m.card, trick)).toBe(true);
+    }
+    const view = makeView({
+      hand,
+      phase: 'playing',
+      trick,
+      legalMoves: legal,
+      gameType: 'galdins',
+    });
+    const move = greedyPlayer(view, createRng(1));
+    expect(move).toEqual({ type: 'play', card: c('7', 'diamonds') });
   });
 });
 

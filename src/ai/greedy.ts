@@ -15,6 +15,7 @@ import {
   type Move,
   type PlayerView,
   type Rng,
+  type TrickCard,
 } from '../engine/index.ts';
 import type { Strategy } from './strategy.ts';
 
@@ -115,6 +116,12 @@ function choosePlay(view: PlayerView): Card {
     .filter((m): m is Extract<Move, { type: 'play' }> => m.type === 'play')
     .map((m) => m.card);
 
+  // Galdiņš (no soloist): the goal is to take the FEWEST tricks, so minimise trick-taking
+  // rather than winning.
+  if (view.gameType === 'galdins') {
+    return choosePlayGaldins(candidates, view.trick);
+  }
+
   // 1. If it can win the trick, play the lowest (weakest by compareCards) winning card.
   const winning = candidates.filter((c) => wouldWin(c, view.trick));
   if (winning.length > 0) {
@@ -123,6 +130,31 @@ function choosePlay(view: PlayerView): Card {
 
   // 2. Otherwise play the lowest legal card.
   return [...candidates].sort(playCompare)[0]!;
+}
+
+/**
+ * Galdiņš play heuristic: duck tricks whenever possible.
+ * - Leading: play the weakest card (least likely to win) by `compareCards`.
+ * - Following: prefer legal cards that do NOT win the trick and shed the strongest such card
+ *   (dumping strength safely). If forced to win (every legal card wins), take it as cheaply as
+ *   possible with the weakest card.
+ */
+function choosePlayGaldins(candidates: readonly Card[], trick: readonly TrickCard[]): Card {
+  const sortedByStrength = [...candidates].sort(compareCards); // weakest → strongest
+
+  // Leading: play the weakest card.
+  if (trick.length === 0) {
+    return sortedByStrength[0]!;
+  }
+
+  // Following: prefer non-winning cards, playing the strongest of them.
+  const nonWinning = sortedByStrength.filter((c) => !wouldWin(c, trick));
+  if (nonWinning.length > 0) {
+    return nonWinning[nonWinning.length - 1]!; // highest non-winning by compareCards
+  }
+
+  // Forced to win: take the trick as cheaply as possible (weakest card).
+  return sortedByStrength[0]!;
 }
 
 // ---------------------------------------------------------------------------

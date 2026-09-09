@@ -4,6 +4,7 @@
  */
 import type { BidAction, Card } from '../../engine/index.ts';
 import { HUMAN, seatName } from '../game/driver.ts';
+import { sortHand } from '../game/cardText.ts';
 import type { ZoleGameVM } from '../game/useZoleGame.ts';
 import { StatusBanner } from './StatusBanner.tsx';
 import { Scoreboard, type ScoreEntry } from './Scoreboard.tsx';
@@ -30,6 +31,8 @@ export function Table({ vm }: TableProps) {
   const humanIsSoloist = view.soloist === HUMAN;
   const showBidding = phase === 'bidding' && isHumanTurn;
   const showDiscard = phase === 'discarding' && humanIsSoloist && isHumanTurn;
+  const pending = vm.pendingTrick;
+  const sortedHand = sortHand(view.hand);
 
   const scoreEntries: ScoreEntry[] = [
     { seat: view.me, name: seatName(view.me), gamePoints: view.gamePoints, isMe: true },
@@ -68,24 +71,35 @@ export function Table({ vm }: TableProps) {
         ))}
       </section>
 
-      <TrickArea trick={view.trick} />
+      <TrickArea trick={pending ? pending.cards : view.trick} />
 
-      {phase === 'roundEnd' && view.result ? <RoundSummary result={view.result} /> : null}
+      {pending ? (
+        <div className="trick-resolution">
+          <span className="trick-resolution__text">Trick won by {seatName(pending.winner)}</span>
+          <button type="button" className="btn" onClick={vm.continueAfterTrick}>
+            Continue
+          </button>
+        </div>
+      ) : null}
+
+      {phase === 'roundEnd' && !pending && view.result ? (
+        <RoundSummary result={view.result} />
+      ) : null}
 
       <section className="human-area">
         <div className="human-label">Your hand</div>
         {showDiscard ? (
           <DiscardTray
-            cards={view.hand}
+            cards={sortedHand}
             selected={vm.selectedDiscards}
             onToggle={vm.toggleDiscardSelection}
             onConfirm={vm.confirmDiscard}
           />
         ) : (
           <Hand
-            cards={view.hand}
+            cards={sortedHand}
             legalCards={legalPlayCards}
-            interactive={isHumanTurn && phase === 'playing'}
+            interactive={isHumanTurn && phase === 'playing' && !pending}
             onPlay={vm.playCard}
           />
         )}

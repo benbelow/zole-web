@@ -206,6 +206,19 @@ body {
   margin: 0;
 }
 
+.trick-resolution {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+}
+
+.trick-resolution__text {
+  color: var(--gold);
+  font-weight: 600;
+}
+
 /* --------------------------------------------------------------- hand + cards */
 
 .human-area {

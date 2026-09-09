@@ -63,9 +63,12 @@ export function applyHumanMove(state: GameState, move: Move): GameState {
   return applyMove(state, move);
 }
 
+/** Compute the AI move for the current (AI) seat, without applying it. */
+export function aiMove(state: GameState, rng: Rng): Move {
+  return greedyPlayer(viewFor(state, state.current), rng);
+}
+
 /** Compute and apply one AI move for the current (AI) seat. */
 export function stepAi(state: GameState, rng: Rng): GameState {
-  const view = viewFor(state, state.current);
-  const move = greedyPlayer(view, rng);
-  return applyMove(state, move);
+  return applyMove(state, aiMove(state, rng));
 }

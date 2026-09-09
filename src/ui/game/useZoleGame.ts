@@ -7,29 +7,42 @@
  * never be recreated on render, but React forbids writing a ref during render — bundling it into
  * state (with a lazy, seeded initializer) is safe because the deal is deterministic, so StrictMode's
  * double-invoke of the initializer produces the same game either way.
+ *
+ * When a play completes a trick, the engine resolves it atomically (the winner collects the cards
+ * and the trick clears). To let the human actually see the completed trick, we capture those three
+ * cards as `pendingTrick` and pause — auto-advance and human play are gated until `continueAfterTrick`.
  */
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  applyMove,
   cardId,
   isLegal,
+  trickWinner,
   type BidAction,
   type Card,
   type GameState,
   type Move,
   type Phase,
+  type PlayerId,
   type PlayerView,
   type Rng,
+  type TrickCard,
 } from '../../engine/index.ts';
 import {
   AI_DELAY_MS,
-  applyHumanMove,
+  aiMove,
   humanView,
   isAiTurn,
   isHumanTurn as driverIsHumanTurn,
   newGame,
   nextRound,
-  stepAi,
 } from './driver.ts';
+
+/** A just-completed trick, held so the human can see it before the next one begins. */
+export interface PendingTrick {
+  readonly cards: readonly TrickCard[];
+  readonly winner: PlayerId;
+}
 
 export interface ZoleGameVM {
   readonly view: PlayerView;
@@ -38,10 +51,12 @@ export interface ZoleGameVM {
   readonly isRoundOver: boolean;
   readonly seed: number;
   readonly selectedDiscards: readonly Card[];
+  readonly pendingTrick: PendingTrick | null;
   readonly bid: (action: BidAction) => void;
   readonly toggleDiscardSelection: (card: Card) => void;
   readonly confirmDiscard: () => void;
   readonly playCard: (card: Card) => void;
+  readonly continueAfterTrick: () => void;
   readonly dealNextRound: () => void;
   readonly newGame: (seed?: number) => void;
 }
@@ -56,44 +71,59 @@ function makeSeed(): number {
   return Math.floor(Math.random() * 0x7fffffff);
 }
 
+/** If `move` completes the current trick, return the three cards + winner to hold on screen. */
+function completedTrick(prev: GameState, move: Move): PendingTrick | null {
+  if (prev.phase !== 'playing' || move.type !== 'play' || prev.trick.length !== 2) return null;
+  const cards: TrickCard[] = [...prev.trick, { by: prev.current, card: move.card }];
+  return { cards, winner: trickWinner(cards) };
+}
+
 export function useZoleGame(initialSeed?: number): ZoleGameVM {
   const [seed, setSeed] = useState<number>(() => initialSeed ?? makeSeed());
   const [game, setGame] = useState<Game>(() => newGame(seed));
   const [selectedDiscards, setSelectedDiscards] = useState<readonly Card[]>([]);
+  const [pendingTrick, setPendingTrick] = useState<PendingTrick | null>(null);
   const state = game.state;
 
-  // Auto-advance AI turns one step per effect run; applying a step re-runs this effect and chains
-  // the next AI seat until it is the human's turn or the round ends.
+  // Auto-advance AI turns one step per effect run, unless a completed trick is waiting to be
+  // acknowledged. Applying a step re-runs this effect and chains the next AI seat until it is the
+  // human's turn, a trick pauses, or the round ends.
   useEffect(() => {
-    if (!isAiTurn(state)) return;
+    if (pendingTrick || !isAiTurn(state)) return;
     let cancelled = false;
     const id = setTimeout(() => {
-      if (cancelled) return;
-      setGame((g) => (isAiTurn(g.state) ? { state: stepAi(g.state, g.rng), rng: g.rng } : g));
+      if (cancelled || !isAiTurn(state)) return;
+      const move = aiMove(state, game.rng);
+      const pending = completedTrick(state, move);
+      setGame({ state: applyMove(state, move), rng: game.rng });
+      if (pending) setPendingTrick(pending);
     }, AI_DELAY_MS);
     return () => {
       cancelled = true;
       clearTimeout(id);
     };
-  }, [state]);
+  }, [state, game.rng, pendingTrick]);
 
   const bid = useCallback((action: BidAction) => {
     setGame((g) => {
       const move: Move = { type: 'bid', action };
       return driverIsHumanTurn(g.state) && isLegal(g.state, move)
-        ? { state: applyHumanMove(g.state, move), rng: g.rng }
+        ? { state: applyMove(g.state, move), rng: g.rng }
         : g;
     });
   }, []);
 
-  const playCard = useCallback((card: Card) => {
-    setGame((g) => {
+  const playCard = useCallback(
+    (card: Card) => {
+      if (pendingTrick) return;
       const move: Move = { type: 'play', card };
-      return driverIsHumanTurn(g.state) && isLegal(g.state, move)
-        ? { state: applyHumanMove(g.state, move), rng: g.rng }
-        : g;
-    });
-  }, []);
+      if (!driverIsHumanTurn(state) || !isLegal(state, move)) return;
+      const pending = completedTrick(state, move);
+      setGame({ state: applyMove(state, move), rng: game.rng });
+      if (pending) setPendingTrick(pending);
+    },
+    [state, game.rng, pendingTrick],
+  );
 
   const toggleDiscardSelection = useCallback((card: Card) => {
     setSelectedDiscards((sel) => {
@@ -110,13 +140,16 @@ export function useZoleGame(initialSeed?: number): ZoleGameVM {
     setGame((g) => {
       const move: Move = { type: 'discard', cards };
       return driverIsHumanTurn(g.state) && isLegal(g.state, move)
-        ? { state: applyHumanMove(g.state, move), rng: g.rng }
+        ? { state: applyMove(g.state, move), rng: g.rng }
         : g;
     });
     setSelectedDiscards([]);
   }, [selectedDiscards]);
 
+  const continueAfterTrick = useCallback(() => setPendingTrick(null), []);
+
   const dealNextRound = useCallback(() => {
+    setPendingTrick(null);
     setGame((g) =>
       g.state.phase === 'roundEnd' ? { state: nextRound(g.state, g.rng), rng: g.rng } : g,
     );
@@ -126,6 +159,7 @@ export function useZoleGame(initialSeed?: number): ZoleGameVM {
     const chosen = nextSeed ?? makeSeed();
     setSeed(chosen);
     setSelectedDiscards([]);
+    setPendingTrick(null);
     setGame(newGame(chosen));
   }, []);
 
@@ -138,10 +172,12 @@ export function useZoleGame(initialSeed?: number): ZoleGameVM {
     isRoundOver: state.phase === 'roundEnd',
     seed,
     selectedDiscards,
+    pendingTrick,
     bid,
     toggleDiscardSelection,
     confirmDiscard,
     playCard,
+    continueAfterTrick,
     dealNextRound,
     newGame: startNewGame,
   };

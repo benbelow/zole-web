@@ -48,7 +48,9 @@ function letAiMove(): void {
 function driveGame(result: Hook, cap = 400): void {
   let steps = 0;
   while (!result.current.isRoundOver && steps < cap) {
-    if (result.current.isHumanTurn) {
+    if (result.current.pendingTrick) {
+      act(() => result.current.continueAfterTrick());
+    } else if (result.current.isHumanTurn) {
       doHumanStep(result);
     } else {
       letAiMove();
@@ -75,7 +77,11 @@ describe('useZoleGame', () => {
     // Advancing timers must eventually return control to the human OR end the round.
     let steps = 0;
     while (!result.current.isHumanTurn && !result.current.isRoundOver && steps < 400) {
-      letAiMove();
+      if (result.current.pendingTrick) {
+        act(() => result.current.continueAfterTrick());
+      } else {
+        letAiMove();
+      }
       steps++;
     }
     expect(steps).toBeLessThan(400);

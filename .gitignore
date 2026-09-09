@@ -1,0 +1,21 @@
+node_modules/
+dist/
+dist-ssr/
+coverage/
+*.local
+.DS_Store
+*.log
+.vite/
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Claude review-gate state
+.claude/.last-reviewed
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+*.db
+.beads-credential-key

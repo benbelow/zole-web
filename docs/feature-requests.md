@@ -30,15 +30,14 @@ Nothing here is pushed anywhere (the repo is local-only).
      - [ ] Add a "concede round" button for the human
      - [ ] Show a running count of trumps already played
 -->
-- [ ] When picking up, the two new cards should animate joining the hand rather than animating the full new hand from sractch - the exitsing hand cards should always be visible
-- [ ] make galdins more visually obvious
-
 ## In Progress
 
 <!-- The agent moves items here while working on them, then on to Processed when done. Format
      (indented so tools ignore this example):
      - [~] <request> — `<bd-id>` — started <UTC-ISO-8601> — run <run-id>
      Any item here older than 60 min is treated as a stale/crashed run and reclaimed to ## Inbox. -->
+- [~] When picking up, the two new cards should animate joining the hand rather than animating the full new hand from sractch - the exitsing hand cards should always be visible — `zole-web-fca` — started 2026-09-09T23:28:00Z — run 20260909T232800Z-d7cd8fa
+- [~] make galdins more visually obvious — `zole-web-6ud` — started 2026-09-09T23:28:00Z — run 20260909T232800Z-d7cd8fa
 
 ## Processed
 

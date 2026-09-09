@@ -8,14 +8,19 @@ as an unchecked list item:
 ```
 
 You can add detail on indented lines beneath an item if you like. The **feature-intake** agent
-(run via `/process-inbox`, or on a timer with `/loop 15m /process-inbox`) processes the oldest
-unchecked item each run:
+(run via `/process-inbox`, or on a timer with `/loop 15m /process-inbox`) works a batch each run.
+Items flow **Inbox → In Progress → Processed**:
 
-1. Logs it to **beads** (`bd create`) — and, if it's a large/architectural change, drafts an
-   **OpenSpec** proposal and leaves it for your approval instead of building blind.
-2. For well-scoped items: implements it (respecting the `engine → ai → ui → app` layering), adds
-   tests, runs the quality gates, runs the code-review gate, and commits atomically.
-3. Moves the item to **## Processed** with its beads id and a one-line outcome.
+1. It logs each item to **beads** (`bd create`) — and, if it's a large/architectural change, drafts
+   an **OpenSpec** proposal and leaves it for your approval instead of building blind.
+2. It moves the items it's working on to **## In Progress**, tagged with a start timestamp and a run
+   id, so an interrupted run leaves a visible marker (`[~]`) instead of losing or double-doing work.
+3. For well-scoped items: it implements them (respecting the `engine → ai → ui → app` layering, with
+   independent items done **in parallel**), adds tests, runs the quality gates and the code-review
+   gate, and commits atomically.
+4. It moves finished items to **## Processed** with their beads id, outcome, and commit.
+5. **Stale-WIP recovery:** at the start of each run it reclaims any `## In Progress` item older than
+   60 minutes (a crashed/abandoned run) back to `## Inbox` so it gets retried.
 
 Nothing here is pushed anywhere (the repo is local-only).
 
@@ -30,6 +35,12 @@ Nothing here is pushed anywhere (the repo is local-only).
 - [ ] When picking up, the two new cards should animate joining the hand rather than animating the full new hand from sractch - the exitsing hand cards should always be visible
 - [ ] make galdins more visually obvious
 - [ ] lift animation on card from hand on hover ready to play. Should be suitably timed and time the unlift so there's never a harsh jump
+
+## In Progress
+
+<!-- The agent moves items here while working on them, then on to Processed when done. Format:
+- [~] <request> — `<bd-id>` — started <UTC-ISO-8601> — run <run-id>
+Any item here older than 60 min is treated as a stale/crashed run and reclaimed to ## Inbox. -->
 
 ## Processed
 

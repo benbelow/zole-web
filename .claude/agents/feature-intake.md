@@ -21,9 +21,16 @@ autonomously but conservatively, and you follow every rule in `CLAUDE.md`.
 
 ## Procedure (each run)
 
+0. **Reclaim stale WIP first.** Get the current UTC time (`date -u +%Y-%m-%dT%H:%M:%SZ`). Read the
+   `## In Progress` section. For each `- [~] … started <ts> …` whose `<ts>` is **more than 60
+   minutes** before now, treat it as a crashed/abandoned run: move it back to `## Inbox` as a plain
+   `- [ ] <request>` (keep its `bd-id`; append "(reclaimed from stale WIP)"). Commit that reclaim on
+   its own (`docs(inbox): reclaim stale WIP …`). Items younger than 60 min belong to a possibly-live
+   run — leave them and do NOT pick them up (avoid double-processing).
+
 1. **Read the inbox.** Open `docs/feature-requests.md`. Collect the unchecked items
    (`- [ ] …`, plus any indented detail lines) under `## Inbox`, oldest first. Ignore commented-out
-   examples (`<!-- … -->`). If there are none, report "inbox empty" and stop — make no changes.
+   examples (`<!-- … -->`). If there are none (after reclaim), report "inbox empty" and stop.
 
 2. **Triage + scope every candidate.** For each item, decide:
    - **Large / architectural** (new capability, cross-layer change, new engine rules, anything
@@ -40,10 +47,15 @@ autonomously but conservatively, and you follow every rule in `CLAUDE.md`.
    run** — do NOT parallelize overlapping work. If nothing is safely parallelizable, just take the
    oldest single item.
 
-4. **Log to beads.** For every item in this run: `bd create --title="…" --description="why + what"
-   --type=feature|task|bug --priority=2`; `bd update <id> --claim`. Capture the ids. If an item is
-   ambiguous/risky/a product decision, `bd human <id>`, mark it "→ needs decision" in Processed, and
-   drop it from the batch.
+4. **Log to beads + claim as WIP.** For every item in this run: `bd create --title="…"
+   --description="why + what" --type=feature|task|bug --priority=2`; `bd update <id> --claim`.
+   Capture the ids. If an item is ambiguous/risky/a product decision, `bd human <id>`, mark it
+   "→ needs decision" in Processed, and drop it from the batch.
+   Then compute a **run id** once (e.g. `date -u +%Y%m%dT%H%M%SZ`-plus-short-`git rev-parse --short
+   HEAD`) and **move every item you're about to work on from `## Inbox` to `## In Progress`** as
+   `- [~] <request> — \`<bd-id>\` — started <UTC-ISO> — run <run-id>`. **Commit this claim now**
+   (`docs(inbox): claim … as WIP`) BEFORE implementing — so if the run dies mid-flight the marker is
+   already on disk for the next run's stale-reclaim to find.
 
 5. **Implement — in parallel where safe.**
    - **Batch > 1:** dispatch one implementation subagent per item **in a single message** (concurrent
@@ -66,9 +78,10 @@ autonomously but conservatively, and you follow every rule in `CLAUDE.md`.
 
 8. **Record + commit — one atomic commit per item.** For each processed item: `git add` just that
    item's files and commit (Conventional Commit + repo trailers); `bd close <id>`; move the item
-   from `## Inbox` to `## Processed` as
-   `- [x] <request> — \`<bd-id>\` — <one-line outcome> (commit <sha>)`. Proposals get
-   `→ proposed (change-name), awaiting approval — <bd-id>`. **Never push.**
+   from `## In Progress` to `## Processed` as
+   `- [x] <request> — \`<bd-id>\` — <one-line outcome> (commit <sha>)`. Proposals move from
+   `## In Progress` to `## Processed` as `→ proposed (change-name), awaiting approval — <bd-id>`.
+   Leave nothing behind in `## In Progress` for items you finished. **Never push.**
 
 9. **Report** a concise summary per item (id, implemented/proposed, commit) and the remaining count.
 

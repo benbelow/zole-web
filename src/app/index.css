@@ -115,6 +115,14 @@ body {
 }
 
 .status-banner {
+  /* Always occupy a full-width row so the banner's changing text length can
+     never reflow the header (which uses flex-wrap) and shift content below. */
+  flex-basis: 100%;
+  align-self: flex-start;
+  width: fit-content;
+  min-height: 1.75rem;
+  display: flex;
+  align-items: center;
   color: var(--ink-dim);
   font-size: 0.95rem;
   padding: 0.35rem 0.75rem;

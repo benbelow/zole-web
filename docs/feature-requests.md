@@ -27,12 +27,9 @@ Nothing here is pushed anywhere (the repo is local-only).
 -->
 - [ ] Follow-up to `zole-web-1hw`: at round end, also show the actual card points each player won that round (not just the game-point delta) — e.g. the soloist's bigScore and each side's captured points
 - [ ] Bug - content moves vertically as top status bar changes width with current status
-- [ ] Cards UI should be bigger still
 - [ ] When picking up, the two new cards should animate joining the hand rather than animating the full new hand from sractch - the exitsing hand cards should always be visible
-- [ ] Remove vibrant theme
 - [ ] make galdins more visually obvious
 - [ ] lift animation on card from hand on hover ready to play. Should be suitably timed and time the unlift so there's never a harsh jump
-- [ ] persist meta scores across refresh with local storage, newgame should reset the scores though
 
 ## Processed
 
@@ -40,3 +37,6 @@ Nothing here is pushed anywhere (the repo is local-only).
 - [x] Add a concede button — `zole-web-abc` — implemented (commit 1a2b3c4)
 -->
 - [x] Show large per-round score after last trick in each player's space — `zole-web-1hw` — implemented: large per-round game-point delta now shown in each seat (human + both opponents) at round end via new RoundDelta component (commit 0a37e7d)
+- [x] Cards UI should be bigger still — `zole-web-9a5` — implemented: .card width/height clamps scaled up ~18% with inner typography bumped proportionally; 8–10 card hand still fits one row, CardView contract unchanged (commit 245299d)
+- [x] Remove vibrant theme — `zole-web-408` — implemented: dropped 'vibrant' from THEMES and its [data-theme='vibrant'] CSS + bg-shift keyframes; default stays 'neon', stored 'vibrant' falls back to 'neon' (commit 7da52e4)
+- [x] persist meta scores across refresh with local storage, newgame should reset the scores though — `zole-web-7kh` — implemented: ui-layer scorePersistence helper stores RoundCarryOver in localStorage, restored on load and saved at round end; newGame() clears it; engine stays pure (commit 4b07ddc)

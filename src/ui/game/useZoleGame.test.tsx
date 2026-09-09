@@ -5,15 +5,20 @@ import { applyMove, viewFor, type GameState } from '../../engine/index.ts';
 import { greedyPlayer } from '../../ai/index.ts';
 import { AI_DELAY_MS, HUMAN, isHumanTurn, newGame, stepAi } from './driver.ts';
 import { useZoleGame, type ZoleGameVM } from './useZoleGame.ts';
+import { loadCarryOver } from './scorePersistence.ts';
 
 type Hook = { current: ZoleGameVM };
 
+const STORAGE_KEY = 'zole-scores';
+
 beforeEach(() => {
   vi.useFakeTimers();
+  localStorage.clear();
 });
 
 afterEach(() => {
   vi.useRealTimers();
+  localStorage.clear();
 });
 
 /** Perform one human action for the current phase (mirrors the prompt's scripted choices). */
@@ -187,6 +192,76 @@ describe('useZoleGame', () => {
     driveGame(result);
     expect(result.current.isRoundOver).toBe(true);
     expect(result.current.view.result?.gameType).toBe('galdins');
+  });
+
+  it('persists the cumulative scoreboard after a round ends', () => {
+    const { result } = renderHook(() => useZoleGame(42));
+    expect(loadCarryOver()).toBeNull();
+
+    driveGame(result);
+    expect(result.current.isRoundOver).toBe(true);
+
+    // The carry-over for the NEXT round is now persisted, reflecting the finished round.
+    const saved = loadCarryOver();
+    expect(saved).not.toBeNull();
+    // Round 1 finished, so the persisted carry-over is at roundNumber 1.
+    expect(saved!.roundNumber).toBe(1);
+    // The persisted cumulative points match the view's scoreboard (players 0,1,2).
+    const view = result.current.view;
+    const seatPoints = new Map<number, number>();
+    seatPoints.set(view.me, view.gamePoints);
+    for (const o of view.opponents) seatPoints.set(o.id, o.gamePoints);
+    expect(saved!.gamePoints[0]).toBe(seatPoints.get(0));
+    expect(saved!.gamePoints[1]).toBe(seatPoints.get(1));
+    expect(saved!.gamePoints[2]).toBe(seatPoints.get(2));
+  });
+
+  it('restores the persisted scoreboard on a fresh hook (survives refresh)', () => {
+    // Simulate a prior session that left a non-zero scoreboard in storage.
+    const persisted = {
+      gamePoints: [5, -2, -3],
+      dealer: 0,
+      zoleTreeBranches: 1,
+      roundNumber: 4,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
+
+    // A brand-new hook (as after a page refresh) must resume from those scores.
+    const { result } = renderHook(() => useZoleGame(42));
+    expect(result.current.phase).toBe('bidding');
+
+    const view = result.current.view;
+    const seatPoints = new Map<number, number>();
+    seatPoints.set(view.me, view.gamePoints);
+    for (const o of view.opponents) seatPoints.set(o.id, o.gamePoints);
+    expect(seatPoints.get(0)).toBe(5);
+    expect(seatPoints.get(1)).toBe(-2);
+    expect(seatPoints.get(2)).toBe(-3);
+  });
+
+  it('newGame clears the persisted scoreboard and resets to zero', () => {
+    // Prior scores in storage.
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ gamePoints: [5, -2, -3], dealer: 0, zoleTreeBranches: 1, roundNumber: 4 }),
+    );
+
+    const { result } = renderHook(() => useZoleGame(42));
+    // Restored non-zero on mount.
+    expect(result.current.view.gamePoints).toBe(5);
+
+    act(() => result.current.newGame(7));
+
+    // Persisted scores cleared.
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+    expect(loadCarryOver()).toBeNull();
+
+    // The scoreboard is back to zero.
+    const view = result.current.view;
+    const sum =
+      view.gamePoints + view.opponents.reduce((a, o) => a + o.gamePoints, 0);
+    expect(sum).toBe(0);
+    expect(view.gamePoints).toBe(0);
   });
 
   it('applies exactly one AI move per timer under StrictMode', () => {

@@ -16,6 +16,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   applyMove,
   cardId,
+  carryOverFromEnd,
+  createRng,
+  dealRound,
   isLegal,
   trickWinner,
   type BidAction,
@@ -40,6 +43,7 @@ import {
   strategyById,
   type StrategyId,
 } from './driver.ts';
+import { clearScores, loadCarryOver, saveCarryOver } from './scorePersistence.ts';
 
 /** A just-completed trick, held so the human can see it before the next one begins. */
 export interface PendingTrick {
@@ -76,6 +80,19 @@ function makeSeed(): number {
   return Math.floor(Math.random() * 0x7fffffff);
 }
 
+/**
+ * Deal the initial round of a session, restoring the persisted cumulative scoreboard when present
+ * so it survives a page refresh. Mirrors `driver.newGame` (createRng + dealRound), but deals from
+ * the stored carry-over instead of `initialCarryOver()` when one exists. `driver.newGame` already
+ * deals from the zero carry-over, so it is reused for the fresh-start path.
+ */
+function initialGame(seed: number): Game {
+  const restored = loadCarryOver();
+  if (restored === null) return newGame(seed);
+  const rng = createRng(seed);
+  return { state: dealRound(restored, rng), rng };
+}
+
 /** If `move` completes the current trick, return the three cards + winner to hold on screen. */
 function completedTrick(prev: GameState, move: Move): PendingTrick | null {
   if (prev.phase !== 'playing' || move.type !== 'play' || prev.trick.length !== 2) return null;
@@ -85,7 +102,7 @@ function completedTrick(prev: GameState, move: Move): PendingTrick | null {
 
 export function useZoleGame(initialSeed?: number): ZoleGameVM {
   const [seed, setSeed] = useState<number>(() => initialSeed ?? makeSeed());
-  const [game, setGame] = useState<Game>(() => newGame(seed));
+  const [game, setGame] = useState<Game>(() => initialGame(seed));
   const [selectedDiscards, setSelectedDiscards] = useState<readonly Card[]>([]);
   const [pendingTrick, setPendingTrick] = useState<PendingTrick | null>(null);
   const [aiStrategies, setAiStrategies] = useState<Record<PlayerId, StrategyId>>(() => ({
@@ -113,6 +130,15 @@ export function useZoleGame(initialSeed?: number): ZoleGameVM {
       clearTimeout(id);
     };
   }, [state, game.rng, pendingTrick, aiStrategies]);
+
+  // Persist the cumulative scoreboard whenever a round completes, so a refresh mid-game restores a
+  // scoreboard that reflects every finished round. We store `carryOverFromEnd(state)` — the exact
+  // carry-over the NEXT round would be dealt from — so restoring on load resumes the running total.
+  useEffect(() => {
+    if (state.phase === 'roundEnd') {
+      saveCarryOver(carryOverFromEnd(state));
+    }
+  }, [state]);
 
   const bid = useCallback((action: BidAction) => {
     setGame((g) => {
@@ -171,6 +197,9 @@ export function useZoleGame(initialSeed?: number): ZoleGameVM {
 
   const startNewGame = useCallback((nextSeed?: number) => {
     const chosen = nextSeed ?? makeSeed();
+    // A new game resets the scoreboard to zero, so drop the persisted carry-over first; deal from
+    // the zero carry-over (driver.newGame's behavior).
+    clearScores();
     setSeed(chosen);
     setSelectedDiscards([]);
     setPendingTrick(null);

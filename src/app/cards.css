@@ -298,39 +298,48 @@
  * ===================================================================== */
 
 @media (prefers-reduced-motion: no-preference) {
-  /* Staggered deal-in for the player's hand. */
-  .hand .card {
+  /*
+   * Deal-in entrance — ONLY for newly-arrived cards (marked `.card--dealing` by the Hand, which
+   * diffs card ids against the previous render). Already-held cards carry no such class and never
+   * re-animate, so on pick-up the two stock cards fly in while the rest of the hand stays put.
+   *
+   * The stagger is scoped under `.card--dealing` so it only sequences cards that enter together
+   * (all ten on a fresh deal). It uses `:nth-child` of the shared `.hand` track, so a held card at
+   * position N does not shift the delay of a new card — but since only the entering cards animate,
+   * mixed positions still read as a quick cascade.
+   */
+  .hand .card--dealing {
     animation: card-deal-in 0.42s cubic-bezier(0.2, 0.75, 0.3, 1) both;
   }
 
-  .hand .card:nth-child(1) {
+  .hand .card--dealing:nth-child(1) {
     animation-delay: 0.02s;
   }
-  .hand .card:nth-child(2) {
+  .hand .card--dealing:nth-child(2) {
     animation-delay: 0.07s;
   }
-  .hand .card:nth-child(3) {
+  .hand .card--dealing:nth-child(3) {
     animation-delay: 0.12s;
   }
-  .hand .card:nth-child(4) {
+  .hand .card--dealing:nth-child(4) {
     animation-delay: 0.17s;
   }
-  .hand .card:nth-child(5) {
+  .hand .card--dealing:nth-child(5) {
     animation-delay: 0.22s;
   }
-  .hand .card:nth-child(6) {
+  .hand .card--dealing:nth-child(6) {
     animation-delay: 0.27s;
   }
-  .hand .card:nth-child(7) {
+  .hand .card--dealing:nth-child(7) {
     animation-delay: 0.32s;
   }
-  .hand .card:nth-child(8) {
+  .hand .card--dealing:nth-child(8) {
     animation-delay: 0.37s;
   }
-  .hand .card:nth-child(9) {
+  .hand .card--dealing:nth-child(9) {
     animation-delay: 0.42s;
   }
-  .hand .card:nth-child(10) {
+  .hand .card--dealing:nth-child(10) {
     animation-delay: 0.47s;
   }
 

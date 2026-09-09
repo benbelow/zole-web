@@ -6,6 +6,7 @@ export interface CardViewProps {
   disabled?: boolean | undefined; // dimmed, not clickable
   selected?: boolean | undefined; // highlighted (discard selection)
   playable?: boolean | undefined; // subtle affordance when it is a legal move
+  entering?: boolean | undefined; // newly-arrived card: run the deal-in entrance animation
   onClick?: ((card: Card) => void) | undefined;
 }
 
@@ -52,7 +53,7 @@ function CardCenter({ card, glyph }: { card: Card; glyph: string }) {
   );
 }
 
-export function CardView({ card, disabled, selected, playable, onClick }: CardViewProps) {
+export function CardView({ card, disabled, selected, playable, entering, onClick }: CardViewProps) {
   const red = isRedSuit(card.suit);
   const trump = isTrump(card);
   const glyph = SUIT_GLYPH[card.suit];
@@ -64,6 +65,7 @@ export function CardView({ card, disabled, selected, playable, onClick }: CardVi
     selected && 'card--selected',
     disabled && 'card--disabled',
     playable && !disabled && 'card--playable',
+    entering && 'card--dealing',
   ]
     .filter(Boolean)
     .join(' ');

@@ -1,0 +1,48 @@
+schema: spec-driven
+
+context: |
+  Project: zole-web — a web implementation of the Latvian card game Zole (React + Vite + TypeScript).
+  Canonical game rules: docs/zole-rules.md (source of truth; cite section numbers).
+  Ground rules: CLAUDE.md. Architecture is strictly layered engine → ai → ui → app (one direction),
+  enforced by eslint-plugin-boundaries. The engine and ai layers MUST be pure: no React/DOM/I/O and
+  no ambient randomness (inject a seedable RNG). Model game state as immutable data transformed by
+  pure reducer-style functions, not mutable classes/singletons. Tests use Vitest, colocated as
+  *.test.ts. Task tracking is beads (bd). The Java code in archive/ is reference only — never import it.
+
+rules:
+  proposal:
+    - Tie every requirement back to a section of docs/zole-rules.md where applicable.
+  design:
+    - Show the concrete TypeScript types for GameState and the public reducer/query API.
+    - Call out explicitly which layer each new module lives in and its allowed dependencies.
+
+# Project context (optional)
+# This is shown to AI when creating artifacts.
+# Add your tech stack, conventions, style guides, domain knowledge, etc.
+# Example:
+#   context: |
+#     Tech stack: TypeScript, React, Node.js
+#     We use conventional commits
+#     Domain: e-commerce platform
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing

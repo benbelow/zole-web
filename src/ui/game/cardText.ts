@@ -33,7 +33,8 @@ export function cardLabel(card: Card): string {
   return `${rankLabel(card.rank)}${SUIT_GLYPH[card.suit]}`;
 }
 
-/** Display grouping for the sorted hand: all trumps first, then clubs, spades, hearts. */
+/** Display grouping for the sorted hand: all trumps first, then clubs, spades, hearts.
+ *  (Every diamond is a trump, so the `diamonds` entry is never actually consulted.) */
 const HAND_GROUP: Record<Suit, number> = { diamonds: 0, clubs: 1, spades: 2, hearts: 3 };
 
 function handGroup(card: Card): number {

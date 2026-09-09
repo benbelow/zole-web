@@ -68,7 +68,8 @@ export function aiMove(state: GameState, rng: Rng): Move {
   return greedyPlayer(viewFor(state, state.current), rng);
 }
 
-/** Compute and apply one AI move for the current (AI) seat. */
+/** Compute and apply one AI move in a single call. Test-only convenience; the hook uses
+ *  `aiMove` + `applyMove` separately so it can detect a completed trick between the two. */
 export function stepAi(state: GameState, rng: Rng): GameState {
   return applyMove(state, aiMove(state, rng));
 }

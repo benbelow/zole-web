@@ -23,7 +23,8 @@ function isThemeId(value: string | null): value is ThemeId {
 
 function readStoredTheme(): ThemeId {
   try {
-    return isThemeId(localStorage.getItem(STORAGE_KEY)) ? (localStorage.getItem(STORAGE_KEY) as ThemeId) : DEFAULT_THEME;
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return isThemeId(stored) ? stored : DEFAULT_THEME;
   } catch {
     return DEFAULT_THEME;
   }

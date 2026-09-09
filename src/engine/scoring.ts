@@ -34,6 +34,13 @@ function baseToScore(bigScore: number): number {
 export function scoreRound(state: PlayingState): RoundResult {
   const treeBranchesBefore = state.zoleTreeBranches;
 
+  // Card points each player won in tricks (trick points only — banked cards excluded). (rules §1)
+  const cardPointsByPlayer: readonly [number, number, number] = [
+    pointsOf(state.players[0].captured),
+    pointsOf(state.players[1].captured),
+    pointsOf(state.players[2].captured),
+  ];
+
   // ----- Galdiņš (no soloist): fewest tricks wins; most tricks pays 2 per opponent. -----
   if (state.soloist === null || state.gameType === 'galdins') {
     const tricks = state.players.map((p) => p.tricksWon);
@@ -48,6 +55,8 @@ export function scoreRound(state: PlayingState): RoundResult {
         gameType: 'galdins',
         soloist: null,
         bigScore: null,
+        smallScore: null,
+        cardPointsByPlayer,
         deltas,
         treeBranchesBefore,
         treeBranchesAfter: treeBranchesBefore,
@@ -59,6 +68,8 @@ export function scoreRound(state: PlayingState): RoundResult {
       gameType: 'galdins',
       soloist: null,
       bigScore: null,
+      smallScore: null,
+      cardPointsByPlayer,
       deltas: [0, 0, 0],
       treeBranchesBefore,
       treeBranchesAfter: treeBranchesBefore,
@@ -71,6 +82,8 @@ export function scoreRound(state: PlayingState): RoundResult {
   const captured = pointsOf(state.players[soloist].captured);
   const bigScore =
     state.gameType === 'ordinary' ? captured + pointsOf(state.soloistDiscard) : captured;
+  // The pair total is the arithmetic complement of the soloist's; single source of truth. (rules §4a)
+  const smallScore = 120 - bigScore;
 
   const opponents = [0, 1, 2].filter((i) => i !== soloist) as [number, number];
 
@@ -80,6 +93,8 @@ export function scoreRound(state: PlayingState): RoundResult {
       gameType: state.gameType,
       soloist,
       bigScore,
+      smallScore,
+      cardPointsByPlayer,
       deltas: [0, 0, 0],
       treeBranchesBefore,
       treeBranchesAfter: treeBranchesBefore + 1,
@@ -119,6 +134,8 @@ export function scoreRound(state: PlayingState): RoundResult {
     gameType: state.gameType,
     soloist,
     bigScore,
+    smallScore,
+    cardPointsByPlayer,
     deltas,
     treeBranchesBefore,
     treeBranchesAfter,

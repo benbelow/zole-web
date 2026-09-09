@@ -699,6 +699,22 @@ body {
   color: var(--ink-dim);
 }
 
+/* Small, muted secondary figure beneath the round delta: card points taken in tricks. */
+.card-points-pill {
+  margin-top: 0.15rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.summary-row--cards {
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
 @keyframes round-delta-pop {
   from {
     transform: scale(0.6);

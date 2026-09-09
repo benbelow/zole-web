@@ -8,7 +8,9 @@ export interface RoundSummaryProps {
 const SEATS = [0, 1, 2] as const;
 
 export function RoundSummary({ result }: RoundSummaryProps) {
-  const { gameType, soloist, bigScore, deltas, summary } = result;
+  const { gameType, soloist, bigScore, smallScore, cardPointsByPlayer, deltas, summary } = result;
+
+  const isGaldins = gameType === 'galdins';
 
   return (
     <div className="round-summary">
@@ -19,6 +21,17 @@ export function RoundSummary({ result }: RoundSummaryProps) {
         {bigScore === null ? '' : ` · Soloist points: ${bigScore}`}
       </p>
       <p className="summary-row">{summary}</p>
+      {/* Captured card-point breakdown (presentational only — never affects settlement). */}
+      {!isGaldins && bigScore !== null && smallScore !== null && (
+        <p className="summary-row summary-row--cards">
+          Cards — Soloist (BIG): {bigScore} · Pair (SMALL): {smallScore}
+        </p>
+      )}
+      {isGaldins && (
+        <p className="summary-row summary-row--cards">
+          Cards taken — {SEATS.map((seat) => `${seatName(seat)}: ${cardPointsByPlayer[seat]}`).join(' · ')}
+        </p>
+      )}
       {SEATS.map((seat) => {
         const delta = deltas[seat];
         const deltaClass = [

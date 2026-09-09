@@ -68,6 +68,11 @@ describe('scoreRound — ordinary', () => {
     expect(result.deltas).toEqual([2, -1, -1]);
     expect(sum(result.deltas)).toBe(0);
     expect(result.treeBranchesAfter).toBe(0);
+    // Card-point reporting (additive): pair total = 120 − bigScore.
+    expect(result.smallScore).toBe(120 - (result.bigScore ?? 0));
+    expect(result.smallScore).toBe(45);
+    // Per-player *trick* points only (the soloist's discard is not captured in tricks).
+    expect(result.cardPointsByPlayer).toEqual([55, 0, 0]);
   });
 
   it('heavy loss bigScore 20 → soloist -6, opponents +3 each', () => {
@@ -93,7 +98,9 @@ describe('scoreRound — ordinary', () => {
     });
     const result = scoreRound(state);
     expect(result.bigScore).toBe(60);
+    expect(result.smallScore).toBe(60);
     expect(result.deltas).toEqual([0, 0, 0]);
+    expect(result.cardPointsByPlayer).toEqual([0, 60, 0]);
     expect(result.treeBranchesBefore).toBe(2);
     expect(result.treeBranchesAfter).toBe(3);
   });
@@ -117,17 +124,33 @@ describe('scoreRound — ordinary', () => {
 
 describe('scoreRound — zole', () => {
   it('zole win bigScore 70 → per-opponent 4, soloist +8 (pairStock excluded)', () => {
+    // A complete deck (sums to 120): soloist 70 in tricks, one opponent 35 in tricks, talon 15.
     const state = makeState({
       gameType: 'zole',
       soloist: 0,
-      players: [{ captured: cards(TEN, 7) }, {}, {}], // 70
-      pairStock: [ACE, KING], // counts for pair, excluded from bigScore
+      players: [
+        { captured: cards(TEN, 7) }, // 70
+        { captured: [ACE, TEN, TEN, KING] }, // 11 + 10 + 10 + 4 = 35
+        {},
+      ],
+      pairStock: [ACE, KING], // 11 + 4 = 15, banked to the pair, excluded from bigScore
     });
     const result = scoreRound(state);
     expect(result.bigScore).toBe(70); // toScore: band 1 (1) + zole (3) = 4
     expect(result.deltas).toEqual([8, -4, -4]);
     expect(sum(result.deltas)).toBe(0);
     expect(result.treeBranchesAfter).toBe(0);
+
+    // smallScore = 120 − bigScore, and it INCLUDES the banked talon (guards design alternative-2:
+    // summing the two opponents' captured trick points would undercount the pair by the talon).
+    expect(result.smallScore).toBe(120 - 70); // 50
+    const opponentTrickPoints =
+      (result.cardPointsByPlayer[1] ?? 0) + (result.cardPointsByPlayer[2] ?? 0);
+    expect(opponentTrickPoints).toBe(35);
+    const talonPoints = 11 + 4; // ACE (11) + KING (4) banked to the pair
+    expect(result.smallScore! - opponentTrickPoints).toBe(talonPoints);
+    // cardPointsByPlayer stays trick-points-only: talon excluded from every seat.
+    expect(result.cardPointsByPlayer).toEqual([70, 35, 0]);
   });
 });
 
@@ -136,12 +159,20 @@ describe('scoreRound — galdiņš', () => {
     const state = makeState({
       gameType: 'galdins',
       soloist: null,
-      players: [{ tricksWon: 5 }, { tricksWon: 2 }, { tricksWon: 1 }],
+      players: [
+        { tricksWon: 5, captured: cards(ACE, 5) }, // 55
+        { tricksWon: 2, captured: cards(TEN, 2) }, // 20
+        { tricksWon: 1, captured: cards(KING, 3) }, // 12
+      ],
       zoleTreeBranches: 3,
     });
     const result = scoreRound(state);
     expect(result.bigScore).toBeNull();
     expect(result.soloist).toBeNull();
+    // Galdiņš has no pair: no big/small split.
+    expect(result.smallScore).toBeNull();
+    // Per-player trick points reported regardless of the trick-based settlement.
+    expect(result.cardPointsByPlayer).toEqual([55, 20, 12]);
     expect(result.deltas).toEqual([-4, 2, 2]);
     expect(sum(result.deltas)).toBe(0);
     expect(result.treeBranchesBefore).toBe(3);
@@ -152,10 +183,16 @@ describe('scoreRound — galdiņš', () => {
     const state = makeState({
       gameType: 'galdins',
       soloist: null,
-      players: [{ tricksWon: 3 }, { tricksWon: 3 }, { tricksWon: 2 }],
+      players: [
+        { tricksWon: 3, captured: cards(ACE, 3) }, // 33
+        { tricksWon: 3, captured: cards(TEN, 3) }, // 30
+        { tricksWon: 2, captured: cards(KING, 2) }, // 8
+      ],
       zoleTreeBranches: 1,
     });
     const result = scoreRound(state);
+    expect(result.smallScore).toBeNull();
+    expect(result.cardPointsByPlayer).toEqual([33, 30, 8]);
     expect(result.deltas).toEqual([0, 0, 0]);
     expect(result.treeBranchesAfter).toBe(1);
   });

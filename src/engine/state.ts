@@ -74,6 +74,19 @@ export interface RoundResult {
   readonly soloist: PlayerId | null;
   /** Card points won by the soloist (null in galdiņš). */
   readonly bigScore: number | null;
+  /**
+   * Card points won by the allied pair ("small") in ordinary/Zole: the two opponents' trick
+   * points plus, in a Zole call, the two banked talon cards. Equals `120 − bigScore` for
+   * ordinary and Zole. `null` in galdiņš (no pair). (rules §4a)
+   */
+  readonly smallScore: number | null;
+  /**
+   * Card points each player won *in tricks* this round (by PlayerId). Excludes banked cards
+   * (the soloist's ordinary discard and the Zole talon), so it is a pure "points taken in play"
+   * figure. Present for every game type; it is the primary per-seat figure for galdiņš.
+   * (rules §1, §4)
+   */
+  readonly cardPointsByPlayer: readonly [number, number, number];
   /** Game-point change applied to each player this round; sums to zero. */
   readonly deltas: readonly [number, number, number];
   readonly treeBranchesBefore: number;

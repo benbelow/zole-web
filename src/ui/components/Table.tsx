@@ -17,6 +17,7 @@ import { BiddingControls } from './BiddingControls.tsx';
 import { DiscardTray } from './DiscardTray.tsx';
 import { RoundSummary } from './RoundSummary.tsx';
 import { RoundDelta } from './RoundDelta.tsx';
+import { CardPointsPill } from './CardPointsPill.tsx';
 import { GameControls } from './GameControls.tsx';
 
 export interface TableProps {
@@ -57,6 +58,13 @@ export function Table({ vm, theme, onThemeChange }: TableProps) {
   const deltaFor = (seat: PlayerId): number | null =>
     roundOver && view.result ? view.result.deltas[seat] : null;
   const humanDelta = deltaFor(HUMAN);
+
+  // Each seat's card points taken in tricks this round — a small secondary figure under the delta.
+  // Consistent "points taken in play" for every seat; the soloist's full bigScore stays in the
+  // summary. Hidden mid-trick (shares the roundOver gate).
+  const cardPointsFor = (seat: PlayerId): number | null =>
+    roundOver && view.result ? view.result.cardPointsByPlayer[seat] : null;
+  const humanCardPoints = cardPointsFor(HUMAN);
 
   const scoreEntries: ScoreEntry[] = [
     { seat: view.me, name: seatName(view.me), gamePoints: view.gamePoints, isMe: true },
@@ -106,6 +114,7 @@ export function Table({ vm, theme, onThemeChange }: TableProps) {
             strategyId={vm.aiStrategies[o.id]}
             onStrategyChange={(id) => vm.setAiStrategy(o.id, id)}
             roundDelta={deltaFor(o.id)}
+            cardPoints={cardPointsFor(o.id)}
           />
         ))}
       </section>
@@ -140,6 +149,7 @@ export function Table({ vm, theme, onThemeChange }: TableProps) {
           )}
         </div>
         {humanDelta !== null && <RoundDelta delta={humanDelta} />}
+        {humanCardPoints !== null && <CardPointsPill points={humanCardPoints} />}
         {showDiscard ? (
           <DiscardTray
             cards={sortedHand}

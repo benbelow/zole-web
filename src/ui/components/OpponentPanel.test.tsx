@@ -81,6 +81,34 @@ describe('OpponentPanel round delta', () => {
   });
 });
 
+describe('OpponentPanel card points', () => {
+  it('shows the card-points pill under the delta when cardPoints is provided', () => {
+    const { container } = render(
+      <OpponentPanel
+        opponent={base}
+        isCurrent={false}
+        isSoloist={false}
+        phase="roundEnd"
+        roundDelta={4}
+        cardPoints={47}
+      />,
+    );
+    const pill = container.querySelector('.card-points-pill');
+    expect(pill).not.toBeNull();
+    expect(pill).toHaveTextContent('47 pts');
+    // Ordered after the delta (secondary figure beneath it).
+    const delta = container.querySelector('.round-delta');
+    expect(delta!.compareDocumentPosition(pill!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('hides the card-points pill by default (null / mid-trick)', () => {
+    const { container } = render(
+      <OpponentPanel opponent={base} isCurrent={false} isSoloist={false} phase="playing" />,
+    );
+    expect(container.querySelector('.card-points-pill')).toBeNull();
+  });
+});
+
 describe('OpponentPanel AI picker', () => {
   it('renders a strategy picker and fires onStrategyChange', () => {
     const onStrategyChange = vi.fn();

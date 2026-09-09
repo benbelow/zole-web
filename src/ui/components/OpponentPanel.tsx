@@ -1,6 +1,7 @@
 import type { OpponentView, Phase } from '../../engine/index.ts';
 import { AI_STRATEGIES, seatName, type StrategyId } from '../game/driver.ts';
 import { RoundDelta } from './RoundDelta.tsx';
+import { CardPointsPill } from './CardPointsPill.tsx';
 
 /** A player's side once a soloist is decided: 'big' = soloist, 'small' = allied pair. */
 export type Role = 'big' | 'small' | null;
@@ -16,6 +17,8 @@ export interface OpponentPanelProps {
   onStrategyChange?: (id: StrategyId) => void;
   /** Per-round game-point change to show large in this seat at round end (null = hide). */
   roundDelta?: number | null;
+  /** Card points this seat took in tricks this round, shown small beneath the delta (null = hide). */
+  cardPoints?: number | null;
 }
 
 export function OpponentPanel({
@@ -28,6 +31,7 @@ export function OpponentPanel({
   strategyId,
   onStrategyChange,
   roundDelta = null,
+  cardPoints = null,
 }: OpponentPanelProps) {
   const className = [
     'opponent-panel',
@@ -58,6 +62,7 @@ export function OpponentPanel({
         <span>Score: {opponent.gamePoints}</span>
       </div>
       {roundDelta !== null && <RoundDelta delta={roundDelta} />}
+      {cardPoints !== null && <CardPointsPill points={cardPoints} />}
       {strategyId && onStrategyChange && (
         <label className="ai-picker">
           <span className="ai-picker__label">AI</span>

@@ -82,7 +82,9 @@ describe('Table round-end deltas', () => {
       gameType: 'ordinary',
       soloist: 0,
       bigScore: 61,
+      smallScore: 59,
       // Asymmetric on purpose: guards against a per-seat indexing regression.
+      cardPointsByPlayer: [61, 34, 25],
       deltas: [5, -2, -3],
       treeBranchesBefore: 0,
       treeBranchesAfter: 0,
@@ -113,6 +115,26 @@ describe('Table round-end deltas', () => {
       />,
     );
     expect(container.querySelectorAll('.round-delta')).toHaveLength(0);
+  });
+
+  it('shows each seat its captured card-points pill at round end', () => {
+    const { container } = render(<Table vm={makeVM(roundEndView)} />);
+    const pills = container.querySelectorAll('.card-points-pill');
+    expect(pills).toHaveLength(3);
+    // Human seat (cardPointsByPlayer[0] = 61) in the human area.
+    expect(container.querySelector('.human-area .card-points-pill')).toHaveTextContent('61 pts');
+    // Both opponents carry their own per-seat figure (indices 1 and 2).
+    const oppPills = Array.from(
+      container.querySelectorAll('.opponent-panel .card-points-pill'),
+    ).map((el) => el.textContent);
+    expect(oppPills).toEqual(['34 pts', '25 pts']);
+  });
+
+  it('hides the card-points pills while a resolved trick is still pending', () => {
+    const { container } = render(
+      <Table vm={makeVM(roundEndView, { pendingTrick: { cards: [], winner: 0 } })} />,
+    );
+    expect(container.querySelectorAll('.card-points-pill')).toHaveLength(0);
   });
 });
 

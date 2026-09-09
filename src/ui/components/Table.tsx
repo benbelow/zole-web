@@ -68,7 +68,7 @@ export function Table({ vm }: TableProps) {
         ))}
       </section>
 
-      <TrickArea trick={view.trick} trickLeader={view.trickLeader} current={view.current} />
+      <TrickArea trick={view.trick} />
 
       {phase === 'roundEnd' && view.result ? <RoundSummary result={view.result} /> : null}
 

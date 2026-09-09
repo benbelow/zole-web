@@ -21,6 +21,8 @@ export function OpponentPanel({ opponent, isCurrent, isSoloist, phase }: Opponen
     <div className={className}>
       <div className="opponent-name">{seatName(opponent.id)}</div>
       <div className="opponent-backs">
+        {/* Face-down placeholders only — opponents' actual cards are never rendered (redaction).
+            Index keys are fine here: the spans are identical and order-stable. */}
         {Array.from({ length: opponent.handCount }, (_, i) => (
           <span key={i} className="card-back" />
         ))}

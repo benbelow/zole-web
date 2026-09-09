@@ -1,11 +1,9 @@
-import { cardId, type PlayerId, type TrickCard } from '../../engine/index.ts';
+import { cardId, type TrickCard } from '../../engine/index.ts';
 import { seatName } from '../game/driver.ts';
 import { CardView } from './CardView.tsx';
 
 export interface TrickAreaProps {
   trick: readonly TrickCard[];
-  trickLeader: PlayerId | null;
-  current: PlayerId;
 }
 
 export function TrickArea({ trick }: TrickAreaProps) {

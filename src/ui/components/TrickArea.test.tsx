@@ -12,7 +12,7 @@ describe('TrickArea', () => {
       { by: 0, card: cardA },
       { by: 1, card: cardB },
     ];
-    render(<TrickArea trick={trick} trickLeader={0} current={2} />);
+    render(<TrickArea trick={trick} />);
     expect(screen.getByText('You')).toBeInTheDocument();
     expect(screen.getByText('AI West')).toBeInTheDocument();
     expect(screen.getByLabelText('A♣')).toBeInTheDocument();
@@ -20,7 +20,7 @@ describe('TrickArea', () => {
   });
 
   it('shows the empty message when the trick is empty', () => {
-    render(<TrickArea trick={[]} trickLeader={null} current={0} />);
+    render(<TrickArea trick={[]} />);
     expect(screen.getByText('No cards played yet.')).toBeInTheDocument();
   });
 });

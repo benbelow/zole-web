@@ -25,15 +25,20 @@ import type {
 
 type Players = readonly [PlayerState, PlayerState, PlayerState];
 
-const PLAYER_IDS: readonly PlayerId[] = [0, 1, 2];
-
 function leftOf(id: PlayerId): PlayerId {
   return ((id + 1) % 3) as PlayerId;
 }
 
+/** Map over the fixed 3-player tuple, preserving its tuple type (no widening to an array). */
+function mapPlayers(
+  players: Players,
+  fn: (p: PlayerState, id: PlayerId) => PlayerState,
+): Players {
+  return [fn(players[0], 0), fn(players[1], 1), fn(players[2], 2)];
+}
+
 function withPlayer(players: Players, id: PlayerId, patch: Partial<PlayerState>): Players {
-  const next = players.map((p, i) => (i === id ? { ...p, ...patch } : p));
-  return next as unknown as Players;
+  return mapPlayers(players, (p, i) => (i === id ? { ...p, ...patch } : p));
 }
 
 // ---------------------------------------------------------------------------
@@ -51,14 +56,13 @@ export function dealRound(carry: RoundCarryOver, rng: Rng): BiddingState {
   if (stockCards.length !== 2) throw new Error('deal: stock must be exactly 2 cards');
   const stock: readonly [Card, Card] = [stockCards[0]!, stockCards[1]!];
 
-  const players = PLAYER_IDS.map(
-    (i): PlayerState => ({
-      hand: hands[i] ?? [],
-      captured: [],
-      tricksWon: 0,
-      gamePoints: carry.gamePoints[i] ?? 0,
-    }),
-  ) as unknown as Players;
+  const mk = (i: PlayerId): PlayerState => ({
+    hand: hands[i] ?? [],
+    captured: [],
+    tricksWon: 0,
+    gamePoints: carry.gamePoints[i] ?? 0,
+  });
+  const players: Players = [mk(0), mk(1), mk(2)];
 
   return {
     phase: 'bidding',
@@ -282,10 +286,10 @@ function applyPlay(state: PlayingState, card: Card): GameState {
 
   // All 8 tricks played: score the round and settle game points.
   const result = scoreRound(afterTrick);
-  const settled = afterTrick.players.map((p, i) => ({
+  const settled = mapPlayers(afterTrick.players, (p, i) => ({
     ...p,
-    gamePoints: p.gamePoints + result.deltas[i]!,
-  })) as unknown as Players;
+    gamePoints: p.gamePoints + result.deltas[i],
+  }));
 
   const end: RoundEndState = {
     phase: 'roundEnd',

@@ -25,6 +25,7 @@ Nothing here is pushed anywhere (the repo is local-only).
      - [ ] Add a "concede round" button for the human
      - [ ] Show a running count of trumps already played
 -->
+- [ ] Follow-up to `zole-web-1hw`: at round end, also show the actual card points each player won that round (not just the game-point delta) — e.g. the soloist's bigScore and each side's captured points
 - [ ] Bug - content moves vertically as top status bar changes width with current status
 - [ ] Cards UI should be bigger still
 - [ ] When picking up, the two new cards should animate joining the hand rather than animating the full new hand from sractch - the exitsing hand cards should always be visible

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { createRng } from './rng.ts';
 import { cardPoints, sameCard, type Card } from './cards.ts';
 import { legalPlays } from './trick.ts';
-import { dealRound, legalMoves, isLegal, applyMove } from './round.ts';
+import { dealRound, legalMoves, isLegal, applyMove, carryOverFromEnd } from './round.ts';
 import { viewFor } from './view.ts';
 import { initialCarryOver, type GameState, type Move } from './state.ts';
 
@@ -152,5 +152,21 @@ describe('viewFor redaction', () => {
     // legal moves are present only for the player to act
     const other = viewFor(state, ((state.current + 1) % 3) as 0 | 1 | 2);
     expect(other.legalMoves).toHaveLength(0);
+  });
+});
+
+describe('dealer rotation', () => {
+  it('moves the dealer (and thus the first player) clockwise each round', () => {
+    const rng = createRng(1);
+    let state: GameState = dealRound(initialCarryOver(), rng);
+    const firstPlayers: number[] = [state.current];
+    for (let r = 0; r < 2; r++) {
+      const end = playOut(state);
+      if (end.phase !== 'roundEnd') throw new Error('unreachable');
+      state = dealRound(carryOverFromEnd(end), rng);
+      firstPlayers.push(state.current);
+    }
+    // Round 1 starts with the human (seat 0), then rotates clockwise to 1, then 2.
+    expect(firstPlayers).toEqual([0, 1, 2]);
   });
 });

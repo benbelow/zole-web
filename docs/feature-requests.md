@@ -36,8 +36,6 @@ Nothing here is pushed anywhere (the repo is local-only).
      (indented so tools ignore this example):
      - [~] <request> — `<bd-id>` — started <UTC-ISO-8601> — run <run-id>
      Any item here older than 60 min is treated as a stale/crashed run and reclaimed to ## Inbox. -->
-- [~] When picking up, the two new cards should animate joining the hand rather than animating the full new hand from sractch - the exitsing hand cards should always be visible — `zole-web-fca` — started 2026-09-09T23:28:00Z — run 20260909T232800Z-d7cd8fa
-- [~] make galdins more visually obvious — `zole-web-6ud` — started 2026-09-09T23:28:00Z — run 20260909T232800Z-d7cd8fa
 
 ## Processed
 
@@ -51,3 +49,5 @@ Nothing here is pushed anywhere (the repo is local-only).
 - [x] Bug - content moves vertically as top status bar changes width with current status — `zole-web-1nz` — implemented: .status-banner now occupies its own full-width header row (flex-basis:100%), so status-text length changes no longer reflow content below (commit 534de82)
 - [x] lift animation on card from hand on hover ready to play — `zole-web-2yn` — implemented: split hover timing — crisp ~0.2s lift, eased ~0.28s un-lift return so no harsh snap; reduced-motion keeps instant affordance (commit 5f4f804)
 - [ ] Follow-up to `zole-web-1hw`: at round end, also show the actual card points each player won that round (not just the game-point delta) — e.g. the soloist's bigScore and each side's captured points — `zole-web-g6t` — → proposed (show-round-captured-card-points), awaiting approval (commit 325c7d3)
+- [x] When picking up, only the two new cards animate joining the hand; existing held cards stay put/visible — `zole-web-fca` — implemented: deal-in rescoped to a `card--dealing` class set only on newly-arrived cards (diffed by cardId in Hand), respects prefers-reduced-motion (commit 4900ee0)
+- [x] make galdiņš more visually obvious — `zole-web-6ud` — implemented: theme-aware gold table/header accent + prominent "Galdiņš — No soloist — fewest tricks wins" header banner and a compact StatusBanner badge (commit 2cb79a0)

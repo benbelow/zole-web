@@ -14,7 +14,6 @@ describe('ThemeSwitcher', () => {
       'aria-pressed',
       'false',
     );
-    expect(screen.getByRole('button', { name: 'Vibrant' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Classic Felt' })).toBeInTheDocument();
   });
 
@@ -22,7 +21,7 @@ describe('ThemeSwitcher', () => {
     const onChange = vi.fn();
     const user = userEvent.setup();
     render(<ThemeSwitcher theme="neon" onChange={onChange} />);
-    await user.click(screen.getByRole('button', { name: 'Vibrant' }));
-    expect(onChange).toHaveBeenCalledWith('vibrant');
+    await user.click(screen.getByRole('button', { name: 'Aerospace' }));
+    expect(onChange).toHaveBeenCalledWith('aerospace');
   });
 });

@@ -75,28 +75,6 @@
   --heading-glow: none;
 }
 
-/* Vibrant — animated colourful gradient. */
-[data-theme='vibrant'] {
-  --bg: linear-gradient(120deg, #7b2ff7, #f107a3, #ff7a18, #24d3ff);
-  --ink: #fff8ff;
-  --ink-dim: #ffe3f6;
-  --gold: #ffe45e;
-  --accent-2: #ff4fd8;
-  --panel: rgba(255, 255, 255, 0.14);
-  --panel-line: rgba(255, 255, 255, 0.35);
-  --panel-blur: blur(4px);
-  --card-bg: #fffdf9;
-  --card-ink-black: #23142e;
-  --card-ink-red: #e0246b;
-  --card-trump-bg: linear-gradient(180deg, #fff, #ffe9fb);
-  --card-trump-border: rgba(255, 79, 216, 0.9);
-  --card-shadow: 0 10px 22px rgba(60, 0, 60, 0.35);
-  --pos: #2fd06f;
-  --neg: #ff5c7a;
-  --shadow: 0 10px 22px rgba(60, 0, 60, 0.3);
-  --heading-glow: 0 0 22px rgba(255, 79, 216, 0.6);
-}
-
 * {
   box-sizing: border-box;
 }
@@ -107,23 +85,6 @@ body {
   background: var(--bg);
   background-attachment: fixed;
   min-height: 100vh;
-}
-
-[data-theme='vibrant'] body {
-  background-size: 400% 400%;
-  animation: bg-shift 20s ease infinite;
-}
-
-@keyframes bg-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
 }
 
 /* ---------------------------------------------------------------- layout */

@@ -19,10 +19,10 @@ describe('useTheme', () => {
 
   it('changes the theme and persists it to localStorage', () => {
     const { result } = renderHook(() => useTheme());
-    act(() => result.current.setTheme('vibrant'));
-    expect(result.current.theme).toBe('vibrant');
-    expect(document.documentElement.getAttribute('data-theme')).toBe('vibrant');
-    expect(localStorage.getItem('zole-theme')).toBe('vibrant');
+    act(() => result.current.setTheme('aerospace'));
+    expect(result.current.theme).toBe('aerospace');
+    expect(document.documentElement.getAttribute('data-theme')).toBe('aerospace');
+    expect(localStorage.getItem('zole-theme')).toBe('aerospace');
   });
 
   it('restores a previously stored theme', () => {

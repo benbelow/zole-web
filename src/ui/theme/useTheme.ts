@@ -8,7 +8,6 @@ import { useCallback, useEffect, useState } from 'react';
 export const THEMES = [
   { id: 'neon', label: 'Neon Holo' },
   { id: 'aerospace', label: 'Aerospace' },
-  { id: 'vibrant', label: 'Vibrant' },
   { id: 'classic', label: 'Classic Felt' },
 ] as const;
 

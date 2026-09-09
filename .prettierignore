@@ -1,0 +1,6 @@
+dist
+coverage
+node_modules
+archive
+openspec
+.beads

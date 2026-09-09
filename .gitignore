@@ -5,6 +5,7 @@ coverage/
 *.local
 .DS_Store
 *.log
+*.tsbuildinfo
 .vite/
 
 # Editor

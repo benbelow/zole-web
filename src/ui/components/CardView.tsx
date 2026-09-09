@@ -3,7 +3,8 @@ import { cardLabel, isRedSuit, rankLabel, SUIT_GLYPH } from '../game/cardText.ts
 
 export interface CardViewProps {
   card: Card;
-  disabled?: boolean | undefined; // dimmed, not clickable
+  disabled?: boolean | undefined; // not clickable (renders at full opacity — see `dimmed` for greying)
+  dimmed?: boolean | undefined; // greyed out: an illegal choice during the player's turn to act
   selected?: boolean | undefined; // highlighted (discard selection)
   playable?: boolean | undefined; // subtle affordance when it is a legal move
   entering?: boolean | undefined; // newly-arrived card: run the deal-in entrance animation
@@ -53,7 +54,15 @@ function CardCenter({ card, glyph }: { card: Card; glyph: string }) {
   );
 }
 
-export function CardView({ card, disabled, selected, playable, entering, onClick }: CardViewProps) {
+export function CardView({
+  card,
+  disabled,
+  dimmed,
+  selected,
+  playable,
+  entering,
+  onClick,
+}: CardViewProps) {
   const red = isRedSuit(card.suit);
   const trump = isTrump(card);
   const glyph = SUIT_GLYPH[card.suit];
@@ -63,8 +72,8 @@ export function CardView({ card, disabled, selected, playable, entering, onClick
     red ? 'card--red' : 'card--black',
     trump && 'card--trump',
     selected && 'card--selected',
-    disabled && 'card--disabled',
-    playable && !disabled && 'card--playable',
+    dimmed && 'card--disabled',
+    playable && !dimmed && 'card--playable',
     entering && 'card--dealing',
   ]
     .filter(Boolean)

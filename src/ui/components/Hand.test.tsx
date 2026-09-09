@@ -35,6 +35,24 @@ describe('Hand', () => {
     expect(onPlay).not.toHaveBeenCalled();
   });
 
+  it('greys (dims) only illegal cards during the play turn', () => {
+    render(<Hand cards={[ace, ten, king]} legalCards={[ace]} interactive onPlay={() => {}} />);
+    expect(screen.getByTestId(`card-${cardId(ace)}`).className).not.toContain('card--disabled');
+    expect(screen.getByTestId(`card-${cardId(ten)}`).className).toContain('card--disabled');
+    expect(screen.getByTestId(`card-${cardId(king)}`).className).toContain('card--disabled');
+  });
+
+  it('does NOT grey the hand when it is not the play turn (regression: bidding after New Game)', () => {
+    // No legal plays and not interactive — e.g. the bidding phase. Cards are non-clickable but must
+    // render at full opacity, never greyed.
+    render(<Hand cards={[ace, ten, king]} legalCards={[]} interactive={false} />);
+    for (const card of [ace, ten, king]) {
+      const el = screen.getByTestId(`card-${cardId(card)}`);
+      expect(el).toBeDisabled(); // not clickable
+      expect(el.className).not.toContain('card--disabled'); // but not greyed
+    }
+  });
+
   it('marks only newly-arrived cards as dealing on pick-up re-render', () => {
     const { rerender } = render(<Hand cards={[ace, ten, king]} interactive={false} />);
 

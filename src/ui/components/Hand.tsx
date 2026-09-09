@@ -58,17 +58,20 @@ export function Hand({ cards, legalCards, interactive, onPlay }: HandProps) {
       {cards.map((card) => {
         const id = cardId(card);
         const legal = !legalCards || legalIds.has(id);
-        const disabled = !interactive || !legal;
-        const playable = interactive && legal;
-        const onClick = interactive && legal ? onPlay : undefined;
+        const clickable = interactive && legal;
+        // Grey a card out ONLY when it's the human's turn to play and this card is an illegal
+        // choice. When it isn't a play turn (bidding, an opponent's turn, round end) the hand is
+        // simply not clickable — it should still render at full opacity, not look disabled.
+        const dimmed = interactive && !legal;
         return (
           <CardView
             key={id}
             card={card}
-            disabled={disabled}
-            playable={playable}
+            disabled={!clickable}
+            dimmed={dimmed}
+            playable={clickable}
             entering={newIds.has(id)}
-            onClick={onClick}
+            onClick={clickable ? onPlay : undefined}
           />
         );
       })}

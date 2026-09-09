@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import type { OpponentView } from '../../engine/index.ts';
 import { OpponentPanel } from './OpponentPanel.tsx';
 
@@ -38,5 +38,29 @@ describe('OpponentPanel', () => {
 
     rerender(<OpponentPanel opponent={base} isCurrent={false} isSoloist={false} phase="bidding" />);
     expect(screen.queryByText('Passed')).not.toBeInTheDocument();
+  });
+});
+
+describe('OpponentPanel AI picker', () => {
+  it('renders a strategy picker and fires onStrategyChange', () => {
+    const onStrategyChange = vi.fn();
+    render(
+      <OpponentPanel
+        opponent={base}
+        isCurrent={false}
+        isSoloist={false}
+        phase="playing"
+        strategyId="greedy"
+        onStrategyChange={onStrategyChange}
+      />,
+    );
+    const select = screen.getByRole('combobox');
+    fireEvent.change(select, { target: { value: 'random' } });
+    expect(onStrategyChange).toHaveBeenCalledWith('random');
+  });
+
+  it('omits the picker when no handler is provided', () => {
+    render(<OpponentPanel opponent={base} isCurrent={false} isSoloist={false} phase="playing" />);
+    expect(screen.queryByRole('combobox')).toBeNull();
   });
 });

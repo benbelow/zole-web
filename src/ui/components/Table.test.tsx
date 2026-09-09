@@ -23,6 +23,8 @@ function makeVM(view: PlayerView, overrides: Partial<ZoleGameVM> = {}): ZoleGame
     continueAfterTrick: vi.fn(),
     dealNextRound: vi.fn(),
     newGame: vi.fn(),
+    aiStrategies: { 0: 'greedy', 1: 'greedy', 2: 'greedy' },
+    setAiStrategy: vi.fn(),
     ...overrides,
   };
 }

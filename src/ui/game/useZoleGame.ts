@@ -31,11 +31,14 @@ import {
 import {
   AI_DELAY_MS,
   aiMove,
+  DEFAULT_STRATEGY,
   humanView,
   isAiTurn,
   isHumanTurn as driverIsHumanTurn,
   newGame,
   nextRound,
+  strategyById,
+  type StrategyId,
 } from './driver.ts';
 
 /** A just-completed trick, held so the human can see it before the next one begins. */
@@ -59,6 +62,8 @@ export interface ZoleGameVM {
   readonly continueAfterTrick: () => void;
   readonly dealNextRound: () => void;
   readonly newGame: (seed?: number) => void;
+  readonly aiStrategies: Readonly<Record<PlayerId, StrategyId>>;
+  readonly setAiStrategy: (seat: PlayerId, id: StrategyId) => void;
 }
 
 interface Game {
@@ -83,6 +88,11 @@ export function useZoleGame(initialSeed?: number): ZoleGameVM {
   const [game, setGame] = useState<Game>(() => newGame(seed));
   const [selectedDiscards, setSelectedDiscards] = useState<readonly Card[]>([]);
   const [pendingTrick, setPendingTrick] = useState<PendingTrick | null>(null);
+  const [aiStrategies, setAiStrategies] = useState<Record<PlayerId, StrategyId>>(() => ({
+    0: DEFAULT_STRATEGY,
+    1: DEFAULT_STRATEGY,
+    2: DEFAULT_STRATEGY,
+  }));
   const state = game.state;
 
   // Auto-advance AI turns one step per effect run, unless a completed trick is waiting to be
@@ -93,7 +103,7 @@ export function useZoleGame(initialSeed?: number): ZoleGameVM {
     let cancelled = false;
     const id = setTimeout(() => {
       if (cancelled || !isAiTurn(state)) return;
-      const move = aiMove(state, game.rng);
+      const move = aiMove(state, game.rng, strategyById(aiStrategies[state.current]));
       const pending = completedTrick(state, move);
       setGame({ state: applyMove(state, move), rng: game.rng });
       if (pending) setPendingTrick(pending);
@@ -102,7 +112,7 @@ export function useZoleGame(initialSeed?: number): ZoleGameVM {
       cancelled = true;
       clearTimeout(id);
     };
-  }, [state, game.rng, pendingTrick]);
+  }, [state, game.rng, pendingTrick, aiStrategies]);
 
   const bid = useCallback((action: BidAction) => {
     setGame((g) => {
@@ -155,6 +165,10 @@ export function useZoleGame(initialSeed?: number): ZoleGameVM {
     );
   }, []);
 
+  const setAiStrategy = useCallback((seat: PlayerId, id: StrategyId) => {
+    setAiStrategies((prev) => ({ ...prev, [seat]: id }));
+  }, []);
+
   const startNewGame = useCallback((nextSeed?: number) => {
     const chosen = nextSeed ?? makeSeed();
     setSeed(chosen);
@@ -180,5 +194,7 @@ export function useZoleGame(initialSeed?: number): ZoleGameVM {
     continueAfterTrick,
     dealNextRound,
     newGame: startNewGame,
+    aiStrategies,
+    setAiStrategy,
   };
 }

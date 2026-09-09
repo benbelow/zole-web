@@ -83,6 +83,8 @@ export function Table({ vm, theme, onThemeChange }: TableProps) {
             phase={view.phase}
             role={roleOf(o.id)}
             isDealer={view.dealer === o.id}
+            strategyId={vm.aiStrategies[o.id]}
+            onStrategyChange={(id) => vm.setAiStrategy(o.id, id)}
           />
         ))}
       </section>
@@ -141,6 +143,11 @@ export function Table({ vm, theme, onThemeChange }: TableProps) {
         onDealNext={vm.dealNextRound}
         onNewGame={() => vm.newGame()}
       />
+
+      <p className="key-hints">
+        Keys: <kbd>U</kbd> pick up · <kbd>Z</kbd> zole · <kbd>P</kbd> pass · number keys pick a card ·{' '}
+        <kbd>←</kbd>/<kbd>→</kbd> move · <kbd>Enter</kbd> confirm / continue · <kbd>N</kbd> new game
+      </p>
     </div>
   );
 }

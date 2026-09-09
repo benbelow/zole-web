@@ -1,5 +1,5 @@
 import type { OpponentView, Phase } from '../../engine/index.ts';
-import { seatName } from '../game/driver.ts';
+import { AI_STRATEGIES, seatName, type StrategyId } from '../game/driver.ts';
 
 /** A player's side once a soloist is decided: 'big' = soloist, 'small' = allied pair. */
 export type Role = 'big' | 'small' | null;
@@ -11,6 +11,8 @@ export interface OpponentPanelProps {
   phase: Phase;
   role?: Role;
   isDealer?: boolean;
+  strategyId?: StrategyId;
+  onStrategyChange?: (id: StrategyId) => void;
 }
 
 export function OpponentPanel({
@@ -20,6 +22,8 @@ export function OpponentPanel({
   phase,
   role = null,
   isDealer = false,
+  strategyId,
+  onStrategyChange,
 }: OpponentPanelProps) {
   const className = [
     'opponent-panel',
@@ -49,6 +53,22 @@ export function OpponentPanel({
         <span>Tricks: {opponent.tricksWon}</span>
         <span>Score: {opponent.gamePoints}</span>
       </div>
+      {strategyId && onStrategyChange && (
+        <label className="ai-picker">
+          <span className="ai-picker__label">AI</span>
+          <select
+            className="ai-picker__select"
+            value={strategyId}
+            onChange={(e) => onStrategyChange(e.target.value as StrategyId)}
+          >
+            {AI_STRATEGIES.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       {isCurrent && <span className="badge">Playing…</span>}
       {phase === 'bidding' && opponent.hasPassed && <span className="badge">Passed</span>}
     </div>

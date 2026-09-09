@@ -16,7 +16,7 @@ import {
   type PlayerView,
   type Rng,
 } from '../../engine/index.ts';
-import { greedyPlayer } from '../../ai/index.ts';
+import { greedyPlayer, randomPlayer, smartPlayer, type Strategy } from '../../ai/index.ts';
 
 /** The human always plays seat 0 in v1; the other two seats are AI. */
 export const HUMAN: PlayerId = 0;
@@ -63,13 +63,28 @@ export function applyHumanMove(state: GameState, move: Move): GameState {
   return applyMove(state, move);
 }
 
+/** The selectable AI strategies, in switcher order. Galdiņš-awareness is built into each. */
+export type StrategyId = 'greedy' | 'smart' | 'random';
+
+export const AI_STRATEGIES: readonly { id: StrategyId; label: string; strategy: Strategy }[] = [
+  { id: 'smart', label: 'Smart', strategy: smartPlayer },
+  { id: 'greedy', label: 'Greedy', strategy: greedyPlayer },
+  { id: 'random', label: 'Random', strategy: randomPlayer },
+];
+
+export const DEFAULT_STRATEGY: StrategyId = 'smart';
+
+export function strategyById(id: StrategyId): Strategy {
+  return (AI_STRATEGIES.find((s) => s.id === id) ?? AI_STRATEGIES[0]!).strategy;
+}
+
 /** Compute the AI move for the current (AI) seat, without applying it. */
-export function aiMove(state: GameState, rng: Rng): Move {
-  return greedyPlayer(viewFor(state, state.current), rng);
+export function aiMove(state: GameState, rng: Rng, strategy: Strategy = greedyPlayer): Move {
+  return strategy(viewFor(state, state.current), rng);
 }
 
 /** Compute and apply one AI move in a single call. Test-only convenience; the hook uses
  *  `aiMove` + `applyMove` separately so it can detect a completed trick between the two. */
-export function stepAi(state: GameState, rng: Rng): GameState {
-  return applyMove(state, aiMove(state, rng));
+export function stepAi(state: GameState, rng: Rng, strategy: Strategy = greedyPlayer): GameState {
+  return applyMove(state, aiMove(state, rng, strategy));
 }

@@ -31,11 +31,17 @@
     var(--card-shadow);
   outline: 2px solid transparent;
   outline-offset: 2px;
+  /*
+   * This transition governs the *un-lift* (return to rest) when :hover is removed, since the
+   * hover rule below overrides it with its own faster lift timing. A slightly longer, gently
+   * eased return (ease-out) lets the card settle back down smoothly with no harsh snap, and the
+   * box-shadow eases in lockstep with the transform so the depth fades as the card lowers.
+   */
   transition:
-    transform 0.16s ease,
-    box-shadow 0.16s ease,
-    outline-color 0.16s ease,
-    filter 0.16s ease;
+    transform 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
+    outline-color 0.2s ease,
+    filter 0.2s ease;
   transform-origin: center bottom;
   -webkit-tap-highlight-color: transparent;
 }
@@ -346,6 +352,16 @@
       0 18px 30px rgba(0, 0, 0, 0.5),
       var(--card-shadow);
     z-index: 4;
+    /*
+     * The lift is a touch quicker than the base un-lift timing and uses a soft ease-out so it
+     * feels crisp and responsive on the way up, while the base `.card` transition takes over on
+     * mouse-leave to bring the card down gently — no abrupt jump either direction.
+     */
+    transition:
+      transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+      outline-color 0.2s ease,
+      filter 0.2s ease;
   }
 
   /* Selected cards keep their raised state but breathe slightly. */
@@ -451,8 +467,14 @@
   }
 }
 
-/* Reduced-motion fallback: keep affordances instant but non-animated. */
+/* Reduced-motion fallback: keep affordances instant but non-animated. The base `.card`
+   transition (which now eases the hover un-lift for everyone else) is disabled here so the
+   affordance snaps rather than animating — honouring the reduced-motion request. */
 @media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+
   .card--playable:not(.card--disabled):hover {
     transform: translateY(-6px);
     box-shadow:

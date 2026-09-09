@@ -430,6 +430,12 @@ body {
   flex-wrap: wrap;
   gap: 0.5rem;
   justify-content: center;
+  /* Headroom so the hover-lift (cards rise ~2rem toward the top) is never clipped by the
+     container edge or the row above; the same headroom benefits the discard tray, which also
+     uses `.hand`. `overflow: visible` (the flex default) documents that the raised card must
+     stay fully on screen. */
+  padding-top: 2.5rem;
+  overflow: visible;
 }
 
 .card {

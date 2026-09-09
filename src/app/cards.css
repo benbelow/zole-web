@@ -1,0 +1,464 @@
+/*
+ * cards.css — high-polish card faces, ornate card backs, and motion.
+ *
+ * Imported AFTER index.css, so these rules intentionally override the base `.card` styles from
+ * index.css while re-using its theme custom properties (--card-bg, --card-ink-*, --card-trump-*,
+ * --card-shadow, --gold, --accent-2, --ink, --radius). All colour decisions stay theme-driven so
+ * the deck looks right across Neon Holo / Classic / Aerospace / Vibrant.
+ *
+ * Motion is opt-in via `@media (prefers-reduced-motion: no-preference)`; the base rules render a
+ * fully-styled, static card so reduced-motion users get the same visuals minus the animation.
+ */
+
+/* ----------------------------------------------------------------- card shell */
+
+.card {
+  /* Responsive: comfortably big, but shrinks so a 8–10 card hand still fits one row. */
+  width: clamp(3.4rem, 8.5vw, 4.6rem);
+  height: clamp(4.9rem, 12.2vw, 6.6rem);
+  padding: 0;
+  position: relative;
+  border-radius: clamp(8px, 1.6vw, 12px);
+  border: 1px solid color-mix(in srgb, var(--card-ink-black) 22%, transparent);
+  background: var(--card-bg);
+  color: var(--card-ink-black);
+  cursor: pointer;
+  overflow: hidden;
+  /* Layered depth: soft ambient drop + a crisp contact shadow + the theme glow. */
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.35),
+    0 8px 18px rgba(0, 0, 0, 0.4),
+    var(--card-shadow);
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    outline-color 0.16s ease,
+    filter 0.16s ease;
+  transform-origin: center bottom;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* The engraved face: a lighter inset panel with a hairline frame, sitting inside the card edge. */
+.card__face {
+  position: absolute;
+  inset: 3px;
+  border-radius: inherit;
+  display: block;
+  background:
+    radial-gradient(
+      120% 90% at 50% 0%,
+      color-mix(in srgb, var(--card-bg) 88%, #fff 12%),
+      var(--card-bg) 70%
+    );
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--card-ink-black) 12%, transparent);
+  overflow: hidden;
+}
+
+/* Subtle top gloss so the card reads as a physical, layered object. */
+.card__face::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 55% 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent);
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------- corner index */
+
+.card__corner {
+  position: absolute;
+  top: 6%;
+  left: 8%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 0.95;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+/* Second corner block: bottom-right, rotated 180° (mirrors a real playing card). */
+.card__corner + .card__center + .card__corner,
+.card__corner:last-of-type {
+  top: auto;
+  left: auto;
+  bottom: 6%;
+  right: 8%;
+  transform: rotate(180deg);
+}
+
+.card__corner-rank {
+  font-size: clamp(0.72rem, 2.1vw, 0.95rem);
+}
+
+.card__corner-suit {
+  font-size: clamp(0.56rem, 1.7vw, 0.75rem);
+  margin-top: 0.05em;
+}
+
+/* --------------------------------------------------------------------- center */
+
+.card__center {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+/* Number cards (7–10, 9): a single large, tasteful central pip. */
+.card__pip {
+  font-size: clamp(1.7rem, 5vw, 2.5rem);
+  line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18));
+}
+
+/* Ace: oversized single central pip. */
+.card__ace-pip {
+  font-size: clamp(2.4rem, 7vw, 3.4rem);
+  line-height: 1;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.22));
+}
+
+/* Court cards (J/Q/K): a big stylised letter inside an accent ring with a small suit emblem. */
+.card__court-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(2.3rem, 6.4vw, 3.1rem);
+  height: clamp(2.3rem, 6.4vw, 3.1rem);
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--gold) 70%, transparent);
+  background:
+    radial-gradient(
+      circle at 50% 30%,
+      color-mix(in srgb, var(--gold) 22%, transparent),
+      transparent 70%
+    );
+  box-shadow:
+    inset 0 0 8px color-mix(in srgb, var(--gold) 35%, transparent),
+    0 0 6px color-mix(in srgb, var(--gold) 25%, transparent);
+}
+
+.card__court-letter {
+  font-size: clamp(1.35rem, 4vw, 1.95rem);
+  font-weight: 900;
+  line-height: 1;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
+}
+
+/* Small suit emblem tucked at the base of the ring. */
+.card__court-emblem {
+  position: absolute;
+  bottom: -0.35em;
+  right: -0.15em;
+  font-size: clamp(0.7rem, 2vw, 0.95rem);
+  padding: 0.05em 0.2em;
+  border-radius: 999px;
+  background: var(--card-bg);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 55%, transparent);
+}
+
+/* ------------------------------------------------------------- suit ink colour */
+
+.card--red {
+  color: var(--card-ink-red);
+}
+
+.card--black {
+  color: var(--card-ink-black);
+}
+
+/* ----------------------------------------------------------------- trump flair */
+
+.card--trump {
+  background: var(--card-trump-bg);
+  border-color: var(--card-trump-border);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.35),
+    0 8px 18px rgba(0, 0, 0, 0.4),
+    0 0 0 1px color-mix(in srgb, var(--gold) 45%, transparent),
+    0 0 16px color-mix(in srgb, var(--gold) 40%, transparent);
+}
+
+.card--trump .card__face {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--gold) 55%, transparent),
+    inset 0 0 14px color-mix(in srgb, var(--gold) 18%, transparent);
+}
+
+/* Small trump badge in the top-right corner. */
+.card__trump-badge {
+  position: absolute;
+  top: 4%;
+  right: 6%;
+  z-index: 2;
+  font-size: clamp(0.6rem, 1.8vw, 0.8rem);
+  line-height: 1;
+  color: var(--gold);
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--gold) 70%, transparent));
+}
+
+/* --------------------------------------------------------------- interactivity */
+
+.card--playable {
+  outline-color: color-mix(in srgb, var(--pos) 70%, transparent);
+}
+
+.card--selected {
+  transform: translateY(-12px) scale(1.03);
+  outline-color: var(--gold);
+  box-shadow:
+    0 16px 28px rgba(0, 0, 0, 0.45),
+    0 0 22px color-mix(in srgb, var(--gold) 60%, transparent);
+  z-index: 3;
+}
+
+.card--disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+  filter: saturate(0.7);
+}
+
+/* Keyboard accessibility: always show a clear focus ring. */
+.card:focus-visible {
+  outline-color: var(--gold);
+  outline-offset: 3px;
+  box-shadow:
+    0 10px 22px rgba(0, 0, 0, 0.45),
+    0 0 20px color-mix(in srgb, var(--gold) 55%, transparent);
+}
+
+/* ------------------------------------------------------------------- card back */
+
+.card-back {
+  /* Scale up to feel like a real facedown card, but stay compact in the opponent strip. */
+  width: clamp(1.6rem, 3.4vw, 2rem);
+  height: clamp(2.3rem, 5vw, 2.9rem);
+  position: relative;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent);
+  /* Ornate layered pattern: diagonal weave + a soft radial vignette. */
+  background-color: color-mix(in srgb, var(--gold) 22%, #0a1428);
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      color-mix(in srgb, var(--gold) 30%, transparent) 0 3px,
+      transparent 3px 6px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, var(--accent-2) 22%, transparent) 0 3px,
+      transparent 3px 6px
+    ),
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.35), transparent 65%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    var(--shadow);
+  overflow: hidden;
+}
+
+/* Inner frame line. */
+.card-back::before {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: 3px;
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  pointer-events: none;
+}
+
+/* Center emblem (a diamond lozenge) that reads as the deck's crest. */
+.card-back::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 42%;
+  height: 42%;
+  transform: translate(-50%, -50%) rotate(45deg);
+  background: radial-gradient(
+    circle at 50% 50%,
+    color-mix(in srgb, var(--gold) 85%, #fff 15%),
+    color-mix(in srgb, var(--gold) 40%, transparent) 70%
+  );
+  box-shadow: 0 0 6px color-mix(in srgb, var(--gold) 60%, transparent);
+  border-radius: 2px;
+}
+
+/* =====================================================================
+ * Motion — only when the user has not requested reduced motion.
+ * The static styles above already look finished; these add the polish.
+ * ===================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Staggered deal-in for the player's hand. */
+  .hand .card {
+    animation: card-deal-in 0.42s cubic-bezier(0.2, 0.75, 0.3, 1) both;
+  }
+
+  .hand .card:nth-child(1) {
+    animation-delay: 0.02s;
+  }
+  .hand .card:nth-child(2) {
+    animation-delay: 0.07s;
+  }
+  .hand .card:nth-child(3) {
+    animation-delay: 0.12s;
+  }
+  .hand .card:nth-child(4) {
+    animation-delay: 0.17s;
+  }
+  .hand .card:nth-child(5) {
+    animation-delay: 0.22s;
+  }
+  .hand .card:nth-child(6) {
+    animation-delay: 0.27s;
+  }
+  .hand .card:nth-child(7) {
+    animation-delay: 0.32s;
+  }
+  .hand .card:nth-child(8) {
+    animation-delay: 0.37s;
+  }
+  .hand .card:nth-child(9) {
+    animation-delay: 0.42s;
+  }
+  .hand .card:nth-child(10) {
+    animation-delay: 0.47s;
+  }
+
+  @keyframes card-deal-in {
+    from {
+      opacity: 0;
+      transform: translateY(26px) rotate(-4deg) scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) rotate(0) scale(1);
+    }
+  }
+
+  /* Hover lift for legal, enabled cards. */
+  .card--playable:not(.card--disabled):hover {
+    transform: translateY(-12px) scale(1.05);
+    box-shadow:
+      0 18px 30px rgba(0, 0, 0, 0.5),
+      var(--card-shadow);
+    z-index: 4;
+  }
+
+  /* Selected cards keep their raised state but breathe slightly. */
+  .card--selected {
+    animation: card-selected-glow 1.8s ease-in-out infinite;
+  }
+
+  @keyframes card-selected-glow {
+    0%,
+    100% {
+      box-shadow:
+        0 16px 28px rgba(0, 0, 0, 0.45),
+        0 0 18px color-mix(in srgb, var(--gold) 50%, transparent);
+    }
+    50% {
+      box-shadow:
+        0 18px 32px rgba(0, 0, 0, 0.5),
+        0 0 30px color-mix(in srgb, var(--gold) 75%, transparent);
+    }
+  }
+
+  /* Trick cards pop in as they land on the table. */
+  .trick-card .card {
+    animation: card-pop-in 0.32s cubic-bezier(0.18, 0.9, 0.32, 1.4) both;
+  }
+
+  @keyframes card-pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.6) rotate(6deg);
+    }
+    60% {
+      transform: scale(1.08) rotate(-1deg);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) rotate(0);
+    }
+  }
+
+  /* Idle sheen sweeping across trumps. A diagonal highlight glides over the face. */
+  .card--trump .card__face::after {
+    content: '';
+    position: absolute;
+    top: -60%;
+    left: -30%;
+    width: 40%;
+    height: 220%;
+    transform: rotate(22deg);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--gold) 45%, transparent),
+      transparent
+    );
+    animation: card-sheen 3.6s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes card-sheen {
+    0% {
+      left: -40%;
+      opacity: 0;
+    }
+    18% {
+      opacity: 1;
+    }
+    45% {
+      left: 120%;
+      opacity: 0;
+    }
+    100% {
+      left: 120%;
+      opacity: 0;
+    }
+  }
+
+  /* Buttons: livelier hover/press feel. */
+  .btn,
+  .bid-button,
+  .discard-confirm {
+    transition:
+      transform 0.12s cubic-bezier(0.2, 0.8, 0.3, 1),
+      filter 0.12s ease,
+      box-shadow 0.12s ease;
+  }
+
+  .btn:not(:disabled):hover,
+  .bid-button:not(:disabled):hover,
+  .discard-confirm:not(:disabled):hover {
+    transform: translateY(-2px) scale(1.02);
+    filter: brightness(1.18);
+    box-shadow:
+      0 8px 18px rgba(0, 0, 0, 0.35),
+      0 0 18px color-mix(in srgb, var(--gold) 50%, transparent);
+  }
+
+  .btn:not(:disabled):active,
+  .bid-button:not(:disabled):active,
+  .discard-confirm:not(:disabled):active {
+    transform: translateY(1px) scale(0.98);
+    filter: brightness(0.95);
+  }
+}
+
+/* Reduced-motion fallback: keep affordances instant but non-animated. */
+@media (prefers-reduced-motion: reduce) {
+  .card--playable:not(.card--disabled):hover {
+    transform: translateY(-6px);
+    box-shadow:
+      0 12px 22px rgba(0, 0, 0, 0.45),
+      var(--card-shadow);
+  }
+}

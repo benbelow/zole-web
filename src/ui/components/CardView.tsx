@@ -1,5 +1,5 @@
-import { cardId, isTrump, type Card } from '../../engine/index.ts';
-import { cardLabel, isRedSuit } from '../game/cardText.ts';
+import { cardId, isTrump, type Card, type Rank } from '../../engine/index.ts';
+import { cardLabel, isRedSuit, rankLabel, SUIT_GLYPH } from '../game/cardText.ts';
 
 export interface CardViewProps {
   card: Card;
@@ -9,11 +9,58 @@ export interface CardViewProps {
   onClick?: ((card: Card) => void) | undefined;
 }
 
+const COURT_RANKS: ReadonlySet<Rank> = new Set(['J', 'Q', 'K']);
+
+/** A stacked corner index: rank above a small suit glyph. Rendered top-left and bottom-right. */
+function CornerIndex({ rank, glyph }: { rank: Rank; glyph: string }) {
+  return (
+    <span className="card__corner" aria-hidden="true">
+      <span className="card__corner-rank">{rankLabel(rank)}</span>
+      <span className="card__corner-suit">{glyph}</span>
+    </span>
+  );
+}
+
+/** The large central artwork. Court cards get an emblem ring, aces a single oversized pip. */
+function CardCenter({ card, glyph }: { card: Card; glyph: string }) {
+  const isCourt = COURT_RANKS.has(card.rank);
+  const isAce = card.rank === 'A';
+
+  if (isCourt) {
+    return (
+      <span className="card__center card__center--court" aria-hidden="true">
+        <span className="card__court-ring">
+          <span className="card__court-letter">{rankLabel(card.rank)}</span>
+          <span className="card__court-emblem">{glyph}</span>
+        </span>
+      </span>
+    );
+  }
+
+  if (isAce) {
+    return (
+      <span className="card__center card__center--ace" aria-hidden="true">
+        <span className="card__ace-pip">{glyph}</span>
+      </span>
+    );
+  }
+
+  return (
+    <span className="card__center card__center--number" aria-hidden="true">
+      <span className="card__pip">{glyph}</span>
+    </span>
+  );
+}
+
 export function CardView({ card, disabled, selected, playable, onClick }: CardViewProps) {
+  const red = isRedSuit(card.suit);
+  const trump = isTrump(card);
+  const glyph = SUIT_GLYPH[card.suit];
+
   const className = [
     'card',
-    isRedSuit(card.suit) ? 'card--red' : 'card--black',
-    isTrump(card) && 'card--trump',
+    red ? 'card--red' : 'card--black',
+    trump && 'card--trump',
     selected && 'card--selected',
     disabled && 'card--disabled',
     playable && !disabled && 'card--playable',
@@ -30,7 +77,16 @@ export function CardView({ card, disabled, selected, playable, onClick }: CardVi
       disabled={disabled}
       onClick={() => !disabled && onClick?.(card)}
     >
-      {cardLabel(card)}
+      <span className="card__face">
+        <CornerIndex rank={card.rank} glyph={glyph} />
+        <CardCenter card={card} glyph={glyph} />
+        <CornerIndex rank={card.rank} glyph={glyph} />
+        {trump && (
+          <span className="card__trump-badge" aria-hidden="true">
+            ★
+          </span>
+        )}
+      </span>
     </button>
   );
 }

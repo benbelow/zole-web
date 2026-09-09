@@ -47,7 +47,10 @@
     "SessionStart": [
       {
         "matcher": "",
-        "hooks": [{ "type": "command", "command": "bd prime" }]
+        "hooks": [
+          { "type": "command", "command": "bd prime" },
+          { "type": "command", "command": ".claude/hooks/inbox-check.sh" }
+        ]
       }
     ],
     "PreCompact": [

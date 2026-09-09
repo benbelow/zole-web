@@ -21,9 +21,9 @@ Nothing here is pushed anywhere (the repo is local-only).
 
 ## Inbox
 
-<!-- Add requests below, one per line. Examples (delete these):
-- [ ] Add a "concede round" button for the human
-- [ ] Show a running count of trumps already played
+<!-- Add requests below, one per line. Examples (indented so tools ignore them):
+     - [ ] Add a "concede round" button for the human
+     - [ ] Show a running count of trumps already played
 -->
 
 ## Processed

@@ -5,13 +5,15 @@
  */
 :root {
   color-scheme: dark;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
 
   --radius: 12px;
 
   /* Neon Holo (default) */
-  --bg:
-    radial-gradient(1200px 820px at 50% -12%, #0b2447 0%, #060c1c 58%, #02040b 100%);
+  --bg: radial-gradient(1200px 820px at 50% -12%, #0b2447 0%, #060c1c 58%, #02040b 100%);
   --ink: #eaf6ff;
   --ink-dim: #8fb6d6;
   --gold: #22e0ff; /* primary accent */
@@ -130,6 +132,75 @@ body {
   border: 1px solid var(--panel-line);
   border-radius: 999px;
   backdrop-filter: var(--panel-blur);
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ---------------------------------------------------------------- galdiņš emphasis */
+
+/* Galdiņš ("the table") has no soloist and the FEWEST tricks wins (zole-rules §4b). Make that
+   unmistakable: an accent border/tint on the table + header and a bold badge. Theme-aware via the
+   --gold / --panel tokens; text (not just colour) carries the meaning for accessibility. */
+
+.zole-table--galdins {
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  border-radius: var(--radius);
+  padding-top: 1rem;
+  box-shadow: 0 0 22px color-mix(in srgb, var(--gold) 22%, transparent);
+}
+
+.zole-header--galdins {
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--gold) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+}
+
+.galdins-banner {
+  flex-basis: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--gold) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--gold) 30%, transparent);
+}
+
+.galdins-banner__label {
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+  text-shadow: var(--heading-glow);
+}
+
+.galdins-banner__desc {
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.status-banner__galdins {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--gold) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 60%, transparent);
+}
+
+.status-banner__galdins-title {
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--gold);
+}
+
+.status-banner__galdins-sub {
+  color: var(--ink);
+  font-size: 0.85rem;
 }
 
 /* ---------------------------------------------------------------- theme switcher */

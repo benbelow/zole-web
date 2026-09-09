@@ -28,7 +28,9 @@ export interface TableProps {
 export function Table({ vm, theme, onThemeChange }: TableProps) {
   const { view, phase, isHumanTurn } = vm;
 
-  const legalPlayCards: Card[] = view.legalMoves.flatMap((m) => (m.type === 'play' ? [m.card] : []));
+  const legalPlayCards: Card[] = view.legalMoves.flatMap((m) =>
+    m.type === 'play' ? [m.card] : [],
+  );
   const legalBids: BidAction[] = view.legalMoves.flatMap((m) =>
     m.type === 'bid' ? [m.action] : [],
   );
@@ -42,7 +44,8 @@ export function Table({ vm, theme, onThemeChange }: TableProps) {
   // Big (soloist) vs Small (pair) is meaningful once a soloist is decided (ordinary/Zole, not
   // galdiņš). Surface it prominently on every seat.
   const rolesVisible =
-    (phase === 'discarding' || phase === 'playing' || phase === 'roundEnd') && view.soloist !== null;
+    (phase === 'discarding' || phase === 'playing' || phase === 'roundEnd') &&
+    view.soloist !== null;
   const roleOf = (seat: PlayerId): Role =>
     rolesVisible ? (seat === view.soloist ? 'big' : 'small') : null;
   const myRole = roleOf(HUMAN);
@@ -65,11 +68,19 @@ export function Table({ vm, theme, onThemeChange }: TableProps) {
     })),
   ].sort((a, b) => a.seat - b.seat);
 
+  const isGaldins = view.gameType === 'galdins';
+
   return (
-    <div className="zole-table">
-      <header className="zole-header">
+    <div className={`zole-table${isGaldins ? ' zole-table--galdins' : ''}`}>
+      <header className={`zole-header${isGaldins ? ' zole-header--galdins' : ''}`}>
         <h1>Zole</h1>
         {theme && onThemeChange ? <ThemeSwitcher theme={theme} onChange={onThemeChange} /> : null}
+        {isGaldins ? (
+          <div className="galdins-banner" role="note">
+            <span className="galdins-banner__label">Galdiņš</span>
+            <span className="galdins-banner__desc">No soloist — fewest tricks wins</span>
+          </div>
+        ) : null}
         <StatusBanner
           phase={view.phase}
           current={view.current}
@@ -156,8 +167,9 @@ export function Table({ vm, theme, onThemeChange }: TableProps) {
       />
 
       <p className="key-hints">
-        Keys: <kbd>U</kbd> pick up · <kbd>Z</kbd> zole · <kbd>P</kbd> pass · number keys pick a card ·{' '}
-        <kbd>←</kbd>/<kbd>→</kbd> move · <kbd>Enter</kbd> confirm / continue · <kbd>N</kbd> new game
+        Keys: <kbd>U</kbd> pick up · <kbd>Z</kbd> zole · <kbd>P</kbd> pass · number keys pick a card
+        · <kbd>←</kbd>/<kbd>→</kbd> move · <kbd>Enter</kbd> confirm / continue · <kbd>N</kbd> new
+        game
       </p>
     </div>
   );

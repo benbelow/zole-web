@@ -35,7 +35,10 @@ export function StatusBanner({
   if (phase !== 'roundEnd') {
     text += ' · ' + (isHumanTurn ? 'Your turn' : `${seatName(current)} to act`);
   }
-  if (gameType !== null) {
+  // Galdiņš gets its own compact badge (rendered below) instead of a plain "· Galdiņš" fragment.
+  // The full "no soloist — fewest tricks wins" explanation lives in the Table header banner, so the
+  // badge here stays a short game-type indicator to avoid stating the same sentence twice.
+  if (gameType !== null && gameType !== 'galdins') {
     text += ' · ' + GAME_TYPE_WORD[gameType];
   }
   if (soloist !== null) {
@@ -45,5 +48,15 @@ export function StatusBanner({
     text += ' · Dealer: ' + seatName(dealer);
   }
 
-  return <div className="status-banner">{text}</div>;
+  return (
+    <div className="status-banner">
+      {gameType === 'galdins' ? (
+        <span className="status-banner__galdins">
+          <span className="status-banner__galdins-title">Galdiņš</span>
+          <span className="status-banner__galdins-sub">no soloist</span>
+        </span>
+      ) : null}
+      <span className="status-banner__text">{text}</span>
+    </div>
+  );
 }

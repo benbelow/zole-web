@@ -98,9 +98,9 @@ describe('Table round-end deltas', () => {
     const humanDelta = container.querySelector('.human-area .round-delta');
     expect(humanDelta).toHaveTextContent('+5');
     // Both opponent panels carry their own per-seat delta (deltas[1], deltas[2]).
-    const oppDeltas = Array.from(
-      container.querySelectorAll('.opponent-panel .round-delta'),
-    ).map((el) => el.textContent);
+    const oppDeltas = Array.from(container.querySelectorAll('.opponent-panel .round-delta')).map(
+      (el) => el.textContent,
+    );
     expect(oppDeltas).toEqual(['-2', '-3']);
   });
 
@@ -113,6 +113,43 @@ describe('Table round-end deltas', () => {
       />,
     );
     expect(container.querySelectorAll('.round-delta')).toHaveLength(0);
+  });
+});
+
+describe('Table galdiņš affordance', () => {
+  const galdinsView: PlayerView = {
+    me: 0,
+    phase: 'playing',
+    hand: [c('A', 'spades'), c('K', 'hearts')],
+    gamePoints: 0,
+    zoleTreeBranches: 0,
+    dealer: 2,
+    current: 1,
+    gameType: 'galdins',
+    soloist: null,
+    trick: [],
+    trickLeader: 1,
+    passed: [],
+    opponents,
+    legalMoves: [],
+    result: null,
+  };
+
+  it('shows the galdiņš banner and modifier classes when gameType is galdins', () => {
+    const { container } = render(<Table vm={makeVM(galdinsView)} />);
+    expect(container.querySelector('.zole-table--galdins')).not.toBeNull();
+    expect(container.querySelector('.zole-header--galdins')).not.toBeNull();
+    const banner = container.querySelector('.galdins-banner');
+    expect(banner).not.toBeNull();
+    expect(banner).toHaveTextContent(/galdiņš/i);
+    expect(banner).toHaveTextContent(/fewest tricks wins/i);
+  });
+
+  it('omits the galdiņš affordance for non-galdiņš games', () => {
+    const ordinary: PlayerView = { ...galdinsView, gameType: 'ordinary', soloist: 1 };
+    const { container } = render(<Table vm={makeVM(ordinary)} />);
+    expect(container.querySelector('.zole-table--galdins')).toBeNull();
+    expect(container.querySelector('.galdins-banner')).toBeNull();
   });
 });
 
